@@ -1,0 +1,18 @@
+{
+  "name": "담보비율 계산기",
+  "short_name": "담보비율",
+  "description": "삼성증권 신용융자 담보비율 계산기",
+  "start_url": "./담보비율계산기.html",
+  "display": "standalone",
+  "background_color": "#f1f5f9",
+  "theme_color": "#1e293b",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
