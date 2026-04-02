@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Background -->
+  <rect width="512" height="512" rx="100" fill="#1e293b"/>
+
+  <!-- Gauge arc segments (cx=256, cy=290, r=170) -->
+  <!-- Red zone: 0% to 140% → angles 210° to ~290° -->
+  <path d="M256 290 L106.5 204.5" stroke="#ef4444" stroke-width="0" fill="none"/>
+
+  <!-- Danger arc (red): -150° to -90° (210°–270°) -->
+  <path d="M99 206 A170 170 0 0 1 189 120" fill="none" stroke="#ef4444" stroke-width="28" stroke-linecap="round"/>
+  <!-- Warning arc (yellow): -90° to -30° (270°–330°) -->
+  <path d="M189 120 A170 170 0 0 1 340 120" fill="none" stroke="#eab308" stroke-width="28" stroke-linecap="round"/>
+  <!-- Safe arc (green): -30° to 30° (330°–390°=30°) -->
+  <path d="M340 120 A170 170 0 0 1 413 206" fill="none" stroke="#22c55e" stroke-width="28" stroke-linecap="round"/>
+
+  <!-- Center cap -->
+  <circle cx="256" cy="290" r="22" fill="#1e293b"/>
+  <circle cx="256" cy="290" r="14" fill="#64748b"/>
+
+  <!-- Needle pointing to ~200% (green zone, ~-50°) -->
+  <!-- Needle tip at angle -50° from center: 256 + 145*cos(-50°), 290 + 145*sin(-50°) -->
+  <!-- cos(-50°)≈0.643, sin(-50°)≈-0.766 → tip ≈ (349, 179) -->
+  <line x1="256" y1="290" x2="345" y2="182" stroke="white" stroke-width="9" stroke-linecap="round"/>
+  <!-- Needle tail -->
+  <line x1="256" y1="290" x2="222" y2="322" stroke="white" stroke-width="5" stroke-linecap="round" opacity="0.4"/>
+
+  <!-- Tick marks -->
+  <!-- 140% mark at -90° (bottom of red) -->
+  <line x1="256" y1="120" x2="256" y2="108" stroke="#ef4444" stroke-width="4" stroke-linecap="round"/>
+  <!-- 200% mark at -30° -->
+  <line x1="403" y1="205" x2="414" y2="196" stroke="#22c55e" stroke-width="4" stroke-linecap="round"/>
+
+  <!-- Labels -->
+  <text x="256" y="340" text-anchor="middle" font-family="'Malgun Gothic','Apple SD Gothic Neo',sans-serif" font-size="32" font-weight="900" fill="white" letter-spacing="-1">담보비율</text>
+  <text x="256" y="372" text-anchor="middle" font-family="'Malgun Gothic','Apple SD Gothic Neo',sans-serif" font-size="20" fill="#94a3b8">계산기</text>
+
+  <!-- Small 140% label -->
+  <text x="247" y="103" text-anchor="middle" font-family="sans-serif" font-size="18" font-weight="bold" fill="#ef4444">140</text>
+  <!-- Small 200% label -->
+  <text x="430" y="195" text-anchor="start" font-family="sans-serif" font-size="18" font-weight="bold" fill="#22c55e">200</text>
+</svg>
