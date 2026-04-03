@@ -983,25 +983,23 @@ function App() {
         ))}
       </div>
 
-      {/* 탭 내용 */}
-      {tab === 'portfolio' && (
-        <>
-          <RatioCard result={baseResult} />
-          <Tab1
-            stocks={stocks} setStocks={setStocks}
-            bonds={bonds}   setBonds={setBonds}
-            cash={cash}     setCash={setCash}
-            loan={loan}     setLoan={setLoan}
-          />
-        </>
-      )}
-      {tab === 'buy' && (
+      {/* 탭 내용 — display로 숨기기/보이기 (언마운트 없음 → 상태 유지) */}
+      <div style={{ display: tab === 'portfolio' ? 'block' : 'none' }}>
+        <RatioCard result={baseResult} />
+        <Tab1
+          stocks={stocks} setStocks={setStocks}
+          bonds={bonds}   setBonds={setBonds}
+          cash={cash}     setCash={setCash}
+          loan={loan}     setLoan={setLoan}
+        />
+      </div>
+      <div style={{ display: tab === 'buy' ? 'block' : 'none' }}>
         <Tab2
           stocks={stocks} bonds={bonds} cash={cash} loan={loan}
           extraBuys={extraBuys} setExtraBuys={setExtraBuys}
         />
-      )}
-      {tab === 'scenario' && (
+      </div>
+      <div style={{ display: tab === 'scenario' ? 'block' : 'none' }}>
         <Tab3
           mergedStocks={mergedStocks}
           bonds={bonds} cash={cash}
@@ -1010,7 +1008,7 @@ function App() {
           changes={scenarioChanges}
           setChanges={setScenarioChanges}
         />
-      )}
+      </div>
     </div>
   );
 }
