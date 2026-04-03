@@ -91,7 +91,7 @@ function applyExtraBuys(baseStocks, extraBuys) {
         s.id === sid ? { ...s, quantity: s.quantity + buy.qty } : s
       );
     }
-    if (buy.type === 'credit') extraLoan += evalAmt * 0.55;
+    if (buy.type === 'credit') extraLoan += evalAmt; // 대용증거금 방식: 매수금액 100% 융자 증가
   }
   return { mergedStocks: stocks, extraLoan };
 }
@@ -484,16 +484,10 @@ function Tab2({ stocks, bonds, cash, loan, extraBuys, setExtraBuys }) {
                 <span className="font-bold">{fmtW(addQty * addPrice)}</span>
               </div>
               {addType === 'credit' && (
-                <>
-                  <div className="flex justify-between text-orange-600">
-                    <span>융자증가 (55%)</span>
-                    <span className="font-bold">+{fmtW(addQty * addPrice * 0.55)}</span>
-                  </div>
-                  <div className="flex justify-between text-gray-500">
-                    <span>자기부담 (45%)</span>
-                    <span className="font-bold">{fmtW(addQty * addPrice * 0.45)}</span>
-                  </div>
-                </>
+                <div className="flex justify-between text-orange-600">
+                  <span>융자증가 (100% · 대용증거금)</span>
+                  <span className="font-bold">+{fmtW(addQty * addPrice)}</span>
+                </div>
               )}
               <div className="flex justify-between pt-1 border-t border-gray-200">
                 <span className="text-gray-500">이 건 추가 후 담보비율</span>
