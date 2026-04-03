@@ -636,9 +636,7 @@ function Tab2({ stocks, bonds, cash, loan, extraBuys, setExtraBuys }) {
 /* ══════════════════════════════════
    탭 3 : 가격 시나리오 (추가매수 반영)
 ══════════════════════════════════ */
-function Tab3({ mergedStocks, bonds, cash, mergedLoan, extraBuyCount }) {
-  const [changes, setChanges] = useState({});
-
+function Tab3({ mergedStocks, bonds, cash, mergedLoan, extraBuyCount, changes, setChanges }) {
   const getChg = id => changes[id] ?? 0;
   const setChg = (id, v) => setChanges(prev => ({ ...prev, [id]: v }));
   const resetAll = () => setChanges({});
@@ -894,9 +892,10 @@ function App() {
   const [bonds,     setBonds]     = useState(saved?.bonds     ?? INIT_BONDS);
   const [cash,      setCash]      = useState(saved?.cash      ?? INIT_CASH);
   const [loan,      setLoan]      = useState(saved?.loan      ?? INIT_LOAN);
-  const [extraBuys, setExtraBuys] = useState(saved?.extraBuys ?? []);
-  const [tab,       setTab]       = useState('portfolio');
-  const [showSync,  setShowSync]  = useState(false);
+  const [extraBuys,       setExtraBuys]       = useState(saved?.extraBuys ?? []);
+  const [scenarioChanges, setScenarioChanges] = useState({});
+  const [tab,             setTab]             = useState('portfolio');
+  const [showSync,        setShowSync]        = useState(false);
 
   /* localStorage 자동 저장 */
   useEffect(() => {
@@ -1008,6 +1007,8 @@ function App() {
           bonds={bonds} cash={cash}
           mergedLoan={mergedLoan}
           extraBuyCount={extraBuys.length}
+          changes={scenarioChanges}
+          setChanges={setScenarioChanges}
         />
       )}
     </div>
