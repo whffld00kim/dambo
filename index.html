@@ -13,9 +13,9 @@
   <meta name="apple-mobile-web-app-title" content="담보비율">
   <link rel="apple-touch-icon" href="icon.svg">
 
-  <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
-  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
-  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/@babel/standalone@7.24.7/babel.min.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     body { font-family: 'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif; }
@@ -42,7 +42,7 @@
 </head>
 <body class="bg-slate-100 min-h-screen">
   <div id="root"></div>
-  <script type="text/babel">
+  <script type="text/babel" data-presets="react" data-type="application/javascript">
 const { useState, useMemo, useRef, useEffect } = React;
 
 const MIN_RATIO = 140;
@@ -770,7 +770,7 @@ function Tab3({ mergedStocks, bonds, cash, mergedLoan, extraBuyCount, changes, s
    동기화 모달
 ══════════════════════════════════ */
 function SyncModal({ data, onImport, onClose }) {
-  const [mode, setMode]       = useState('export'); // 'export' | 'import'
+  const [mode, setMode]       = useState('export');
   const [importCode, setImportCode] = useState('');
   const [error, setError]     = useState('');
   const [copied, setCopied]   = useState(false);
