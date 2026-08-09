@@ -1,12 +1,21 @@
-const CACHE_NAME = 'dambo-v2';
+const CACHE_NAME = 'dambo-v3';
 
-// CDN 리소스만 캐시 (무거운 외부 라이브러리 → 오프라인/속도 목적)
+// 외부 라이브러리만 캐시한다 (무거워서 — 오프라인/속도 목적).
+// index.html이 실제로 불러오는 URL과 한 글자도 다르면 미리 받아두는 의미가 없다.
 const CDN_ASSETS = [
-  'https://unpkg.com/react@18/umd/react.development.js',
-  'https://unpkg.com/react-dom@18/umd/react-dom.development.js',
-  'https://unpkg.com/@babel/standalone/babel.min.js',
+  'https://unpkg.com/react@18/umd/react.production.min.js',
+  'https://unpkg.com/react-dom@18/umd/react-dom.production.min.js',
+  'https://unpkg.com/@babel/standalone@7.24.7/babel.min.js',
   'https://cdn.tailwindcss.com',
+  'https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js',
+  'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js',
+  'https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js',
 ];
+
+// 캐시해도 되는 곳. 여기 없는 호스트는 무조건 네트워크로 보낸다.
+// ⚠️ 이 목록을 넓히지 말 것 — 로그인(identitytoolkit)과 DB 응답까지 캐시되면
+//    지난 응답이 되살아나 로그인이 이상하게 풀리거나 옛 잔고가 보인다.
+const CACHEABLE_HOSTS = ['unpkg.com', 'cdn.tailwindcss.com', 'www.gstatic.com'];
 
 self.addEventListener('install', event => {
   event.waitUntil(
@@ -47,7 +56,9 @@ self.addEventListener('fetch', event => {
     return;
   }
 
-  // ── CDN 라이브러리 : 캐시 우선 (속도 + 오프라인) ──
+  // ── 그 외 : 허용한 CDN만 캐시 우선, 나머지는 손대지 않는다 ──
+  if (!CACHEABLE_HOSTS.includes(url.hostname)) return;
+
   event.respondWith(
     caches.match(event.request).then(cached => {
       if (cached) return cached;
