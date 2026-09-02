@@ -1,4 +1,4 @@
-const CACHE_NAME = 'dambo-v3';
+const CACHE_NAME = 'dambo-v4';
 
 // 외부 라이브러리만 캐시한다 (무거워서 — 오프라인/속도 목적).
 // index.html이 실제로 불러오는 URL과 한 글자도 다르면 미리 받아두는 의미가 없다.
