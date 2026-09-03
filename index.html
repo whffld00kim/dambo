@@ -13,8 +13,9 @@
   <meta name="apple-mobile-web-app-title" content="담보비율">
   <link rel="apple-touch-icon" href="icon.svg">
 
-  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
-  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+  <!-- 버전을 정확히 고정한다 (2026-09-03). @18처럼 두면 CDN이 다른 18.x를 줄 때 동작이 바뀔 수 있다. sw.js의 CDN_ASSETS와 한 글자도 다르면 안 된다 -->
+  <script src="https://unpkg.com/react@18.3.1/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js" crossorigin></script>
   <script src="https://unpkg.com/@babel/standalone@7.24.7/babel.min.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
 

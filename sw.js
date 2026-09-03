@@ -1,10 +1,10 @@
-const CACHE_NAME = 'dambo-v5';
+const CACHE_NAME = 'dambo-v6';   // v6: React CDN 버전 18.3.1로 고정 (2026-09-03)
 
 // 외부 라이브러리만 캐시한다 (무거워서 — 오프라인/속도 목적).
 // index.html이 실제로 불러오는 URL과 한 글자도 다르면 미리 받아두는 의미가 없다.
 const CDN_ASSETS = [
-  'https://unpkg.com/react@18/umd/react.production.min.js',
-  'https://unpkg.com/react-dom@18/umd/react-dom.production.min.js',
+  'https://unpkg.com/react@18.3.1/umd/react.production.min.js',
+  'https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js',
   'https://unpkg.com/@babel/standalone@7.24.7/babel.min.js',
   'https://cdn.tailwindcss.com',
   'https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js',
