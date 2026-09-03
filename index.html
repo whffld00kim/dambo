@@ -140,7 +140,15 @@
 
   function damboSignOut() {
     if (!confirm('로그아웃 하시겠습니까?')) return;
-    auth.signOut().then(() => location.reload());
+    // 로그아웃하면 이 기기의 보유·융자·현금 캐시를 지운다 (S12, 2026-09-03).
+    // 추가매수 시뮬레이션(extraBuys)은 클라우드에 없는 기기 전용 값이라 그것만 남긴다.
+    try {
+      const prev = JSON.parse(localStorage.getItem('dambo_v1') || 'null');
+      const keep = prev && prev.extraBuys ? { extraBuys: prev.extraBuys } : null;
+      localStorage.removeItem('dambo_v1');
+      if (keep) localStorage.setItem('dambo_v1', JSON.stringify(keep));
+    } catch {}
+    auth.signOut().finally(() => location.reload());
   }
 
   /**
