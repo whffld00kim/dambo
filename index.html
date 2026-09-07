@@ -889,9 +889,41 @@ function Tab2({ stocks, bonds, cash, loan, extraBuys, setExtraBuys }) {
 /* ══════════════════════════════════
    탭 3 : 가격 시나리오 (추가매수 반영)
 ══════════════════════════════════ */
-function Tab3({ mergedStocks, bonds, cash, mergedLoan, extraBuyCount, changes, setChanges }) {
-  const getChg = id => changes[id] ?? 0;
-  const setChg = (id, v) => setChanges(prev => ({ ...prev, [id]: v }));
+function Tab3({ mergedStocks, bonds, cash, mergedLoan, extraBuys = [], changes, setChanges }) {
+  const extraBuyCount = extraBuys.length;
+
+  /* 같은 종목의 일반·신용은 한 묶음 — "에이피알" / "에이피알(신용)" 을 같은 기초로 본다 */
+  const baseName = n => String(n || '').replace(/\s*\((신용|일반)\)\s*$/, '').trim();
+  const groupIds = id => {
+    const me = mergedStocks.find(x => x.id === id);
+    if (!me) return [id];
+    const k = baseName(me.name);
+    return mergedStocks.filter(x => baseName(x.name) === k).map(x => x.id);
+  };
+
+  /* 시나리오가 기본값 = 그 종목에 입력한 추가매수 중 가장 낮은 가격 (2026-09-07 사용자 요청).
+     사용자가 직접 바꾼 값(changes)이 있으면 그쪽이 우선. 전체 초기화 → 다시 이 기본값으로 */
+  const defaultChg = useMemo(() => {
+    const minByBase = {};
+    for (const b of extraBuys) {
+      if (!(b.price > 0)) continue;
+      const k = baseName(b.name);
+      minByBase[k] = Math.min(minByBase[k] ?? Infinity, b.price);
+    }
+    const m = {};
+    for (const st of mergedStocks) {
+      const p = minByBase[baseName(st.name)];
+      if (p && st.currentPrice > 0) m[st.id] = ((p - st.currentPrice) / st.currentPrice) * 100;
+    }
+    return m;
+  }, [extraBuys, mergedStocks]);
+
+  const getChg = id => changes[id] ?? defaultChg[id] ?? 0;
+  const setChg = (id, v) => setChanges(prev => {
+    const next = { ...prev };
+    for (const gid of groupIds(id)) next[gid] = v;   // 일반·신용 함께 움직인다
+    return next;
+  });
   const resetAll = () => setChanges({});
 
   const simStocks = useMemo(() =>
@@ -922,7 +954,7 @@ function Tab3({ mergedStocks, bonds, cash, mergedLoan, extraBuyCount, changes, s
           <div>
             <h3 className="font-semibold text-gray-600 text-sm">종목별 가격 시나리오</h3>
             {extraBuyCount > 0 && (
-              <p className="text-xs text-blue-500 mt-0.5">추가매수 {extraBuyCount}건이 수량에 반영됨</p>
+              <p className="text-xs text-blue-500 mt-0.5">추가매수 {extraBuyCount}건이 수량에 반영됨 · 시나리오가 기본값 = 추가매수 최저가</p>
             )}
           </div>
           <button onClick={resetAll}
@@ -941,7 +973,7 @@ function Tab3({ mergedStocks, bonds, cash, mergedLoan, extraBuyCount, changes, s
             const handlePriceChange = (newPrice) => {
               if (s.currentPrice <= 0) return;
               const newChg = ((newPrice - s.currentPrice) / s.currentPrice) * 100;
-              setChg(s.id, Math.round(newChg * 10) / 10);
+              setChg(s.id, newChg);   // 반올림하지 않는다 — 입력한 가격이 그대로 남아야 한다 (% 칸은 표시만 0.1 단위)
             };
 
             return (
@@ -984,7 +1016,7 @@ function Tab3({ mergedStocks, bonds, cash, mergedLoan, extraBuyCount, changes, s
                   {/* % 입력 */}
                   <div className="flex items-center gap-0.5 shrink-0">
                     <input type="number" min="-80" max="200"
-                      value={chg}
+                      value={Math.round(chg * 10) / 10}
                       onChange={e => setChg(s.id, parseFloat(e.target.value) || 0)}
                       className={`w-14 border rounded px-1 py-1.5 text-sm text-right font-bold focus:outline-none focus:ring-1 focus:ring-blue-300
                         ${chg < 0 ? 'text-blue-600 border-blue-200 bg-blue-50'
@@ -1316,7 +1348,7 @@ function App({ boot }) {
           mergedStocks={mergedStocks}
           bonds={bonds} cash={cash}
           mergedLoan={mergedLoan}
-          extraBuyCount={extraBuys.length}
+          extraBuys={extraBuys}
           changes={scenarioChanges}
           setChanges={setScenarioChanges}
         />
