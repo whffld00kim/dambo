@@ -51,6 +51,170 @@
     .lock-btn-google:hover:not(:disabled) { background: #f8fafc; }
     .lock-btn-google:disabled { opacity: .5; cursor: default; }
     .lock-error { font-size: 12px; color: #dc2626; margin-top: 12px; min-height: 16px; }
+
+    /* ============ 태블릿 (2026-09-28) ============
+       갤럭시 탭을 가로로 두고 쓸 때. 폰 화면은 건드리지 않고 넓을 때만 덮어쓴다.
+       - 폭 제한(max-w-2xl)을 풀고 탭마다 두 단: 왼쪽 입력 / 오른쪽 결과
+       - 화면 높이를 채운다 (카드가 남는 높이를 나눠 갖는다, min-height라 길면 스크롤)
+       tb-* 클래스는 폰에서는 아무 규칙이 없는 표식이다.
+       Tailwind CDN이 이 style 뒤에 규칙을 붙이므로 #root를 앞에 달아 우선순위로 이긴다 */
+    @media (min-width: 900px) and (orientation: landscape) {
+      #root .tb-app {
+        max-width: 1320px;
+        padding: 20px 28px 24px;
+        min-height: 100vh;
+        min-height: 100dvh;
+        display: flex;
+        flex-direction: column;
+      }
+      #root .tb-header { padding: 18px 28px; margin-bottom: 14px; }
+      #root .tb-header h1 { font-size: 24px; }
+      #root .tb-header p, #root .tb-header .text-xs { font-size: 13px; }
+      #root .tb-header .text-3xl { font-size: 36px; line-height: 40px; }
+      #root .tb-tabs { padding: 6px; margin-bottom: 16px; }
+      #root .tb-tabs button { font-size: 15px; padding: 11px 0; }
+
+      /* 탭 내용이 남는 높이를 채운다 (보이는 탭만 — 숨긴 탭은 인라인 display:none이 이긴다) */
+      #root .tb-panel { flex: 1 1 auto; display: flex; flex-direction: column; min-height: 0; }
+      #root .tb-panel > .tb-buy, #root .tb-panel > .tb-scn { flex: 1 1 auto; }
+
+      /* 입력칸·버튼: 팔 길이에서 보는 화면이라 조금 키운다 */
+      #root .tb-app input[type=text], #root .tb-app input[type=number], #root .tb-app select {
+        font-size: 16px; padding-top: 9px; padding-bottom: 9px;
+      }
+      #root .tb-app label { font-size: 13px; }
+      #root .tb-app h3 { font-size: 16px; }
+
+      /* ── 담보비율 카드 (포트폴리오·시나리오 오른쪽) ── */
+      #root .tb-ratio {
+        display: flex; flex-direction: column;
+        margin-bottom: 0; padding: 28px 28px 24px;
+      }
+      #root .tb-ratio .text-gray-500.font-semibold { font-size: 18px; }
+      #root .tb-ratio-num { font-size: 56px; line-height: 1.1; }
+      #root .tb-ratio-req { font-size: 13px; margin-top: 4px; }
+      #root .tb-gauge { margin: auto 0; padding: 28px 0 8px; }
+      #root .tb-gauge > .h-5 { height: 28px; }
+      #root .tb-gauge .w-0\.5 { height: 28px; width: 3px; }
+      #root .tb-gauge .-top-5 { font-size: 14px; top: -24px; }
+      #root .tb-ratio-grid3, #root .tb-ratio-grid2 { gap: 12px; }
+      #root .tb-ratio-grid3 { margin-bottom: 12px; }
+      #root .tb-ratio-grid3 > div, #root .tb-ratio-grid2 > div { padding: 18px 10px; }
+      #root .tb-ratio-grid3 .text-xs, #root .tb-ratio-grid2 .text-xs { font-size: 13px; margin-bottom: 6px; }
+      #root .tb-ratio-grid3 .font-bold { font-size: 16px; }
+      #root .tb-ratio-grid2 .font-bold { font-size: 19px; }
+
+      /* ── 포트폴리오: 왼쪽 종목표·기타 자산 / 오른쪽 담보비율 ── */
+      #root .tb-panel-portfolio {
+        display: grid;
+        grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+        column-gap: 20px;
+        align-items: stretch;
+      }
+      #root .tb-panel-portfolio > .tb-ratio { grid-column: 2; grid-row: 1; }
+      #root .tb-panel-portfolio > .tb-inputs { grid-column: 1; grid-row: 1; display: flex; flex-direction: column; min-height: 0; }
+      #root .tb-table-wrap {
+        flex: 1 1 auto; margin-bottom: 14px;
+        background: #fff; border-radius: 12px;
+        box-shadow: 0 1px 3px rgba(0,0,0,.1), 0 1px 2px -1px rgba(0,0,0,.1);
+      }
+      #root .tb-table { box-shadow: none; font-size: 15px; table-layout: fixed; }
+      #root .tb-table th { font-size: 13px; padding: 12px 14px; }
+      /* 칸 폭 고정 — 수정 줄에 입력칸이 들어와도 표가 출렁이지 않게 */
+      #root .tb-table th:nth-child(1) { width: 26%; }
+      #root .tb-table th:nth-child(2) { width: 11%; }
+      #root .tb-table th:nth-child(3) { width: 14.5%; }
+      #root .tb-table th:nth-child(4) { width: 18%; }
+      #root .tb-table th:nth-child(5) { width: 12%; }
+      #root .tb-table th:nth-child(6) { width: 18.5%; }
+      #root .tb-table td { padding: 14px 14px; white-space: nowrap; }
+      #root .tb-table td:first-child { white-space: normal; }
+      #root .tb-table tr.bg-yellow-50 td { padding: 10px 6px; }
+      #root .tb-table tr.bg-yellow-50 input, #root .tb-table tr.bg-yellow-50 select { padding: 8px 8px; font-size: 15px; }
+      #root .tb-table td .text-xs, #root .tb-table td button { font-size: 13px; }
+      #root .tb-table td button { padding: 4px 6px; }
+      #root .tb-add { align-self: flex-start; font-size: 15px; padding: 10px 22px; margin-bottom: 14px; }
+      #root .tb-etc { padding: 20px 22px; }
+
+      /* ── 추가매수: 입력 | 목록 | 전후 비교 (세 단, 각각 화면 높이) ── */
+      #root .tb-buy {
+        display: grid;
+        grid-template-columns: minmax(0, 5fr) minmax(0, 4fr) minmax(0, 4fr);
+        gap: 20px;
+        min-height: 0;
+      }
+      #root .tb-buyform { grid-column: 1; grid-row: 1; margin-bottom: 0; padding: 24px 24px; }
+      #root .tb-buyform > .grid { row-gap: 18px; }
+      #root .tb-buyform input[type=text], #root .tb-buyform select { padding-top: 12px; padding-bottom: 12px; }
+      #root .tb-buyform button { font-size: 16px; padding-top: 13px; padding-bottom: 13px; }
+      #root .tb-buyform .bg-slate-50 { font-size: 15px; padding: 14px 16px; }
+      #root .tb-compare { grid-column: 3; grid-row: 1; display: flex; flex-direction: column; margin-bottom: 0; padding: 22px; }
+      #root .tb-cmp-grid { flex: 1 1 auto; grid-template-columns: 1fr; gap: 12px; }
+      #root .tb-cmp-grid > div { display: flex; flex-direction: column; justify-content: center; padding: 16px 10px; }
+      #root .tb-cmp-grid .text-2xl { font-size: 40px; line-height: 1.2; }
+      #root .tb-cmp-grid .text-xs { font-size: 14px; }
+      /* 목록이 없으면 비교 카드가 두 단을 차지하고 전·후를 나란히 둔다 */
+      #root .tb-buy:not(:has(.tb-buylist)) > .tb-compare { grid-column: 2 / span 2; }
+      #root .tb-buy:not(:has(.tb-buylist)) .tb-cmp-grid { grid-template-columns: 1fr 1fr; }
+      #root .tb-buy:not(:has(.tb-buylist)) .tb-cmp-grid .text-2xl { font-size: 56px; }
+      #root .tb-compare > .text-center, #root .tb-compare > div > div { font-size: 15px; }
+      #root .tb-buylist { grid-column: 2; grid-row: 1; margin-bottom: 0; padding: 22px; display: flex; flex-direction: column; min-height: 0; }
+      #root .tb-buyitems { flex: 1 1 auto; min-height: 0; overflow-y: auto; }
+      #root .tb-buyitems > div { font-size: 15px; padding: 10px 14px; gap: 8px; }
+      #root .tb-buyitems > div > div:first-child { min-width: 0; }
+      #root .tb-buyitems > div > div:first-child .font-medium { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+      #root .tb-buyitems > div > div:first-child > span:last-child { flex-shrink: 0; white-space: nowrap; }
+      #root .tb-buyitems > div > div:last-child { flex-shrink: 0; }
+      #root .tb-buyitems .text-right > div { white-space: nowrap; }
+      #root .tb-buyitems .text-xs { font-size: 13px; }
+      #root .tb-buylist > .border-t { font-size: 15px; }
+
+      /* ── 가격 시나리오: 왼쪽 종목 카드 두 단 / 오른쪽 담보비율 ── */
+      #root .tb-scn {
+        display: grid;
+        grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+        grid-template-rows: minmax(0, 1fr) auto;
+        gap: 14px 20px;
+        min-height: 0;
+      }
+      #root .tb-scn > .tb-ratio { grid-column: 2; grid-row: 1; }
+      #root .tb-scn:not(:has(.tb-scn-diff)) > .tb-ratio { grid-row: 1 / span 2; }
+      #root .tb-scn-diff { grid-column: 2; grid-row: 2; margin-bottom: 0; font-size: 16px; padding: 14px 0; }
+      #root .tb-scn-list { grid-column: 1; grid-row: 1 / span 2; display: flex; flex-direction: column; padding: 20px 22px; min-height: 0; }
+      #root .tb-scn-list > div:first-child { margin-bottom: 14px; }
+      #root .tb-scn-items {
+        flex: 1 1 auto;
+        min-height: 0;
+        overflow-y: auto;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-auto-rows: minmax(min-content, 1fr);
+        gap: 14px;
+      }
+      #root .tb-scn-items > * { margin-top: 0 !important; }
+      #root .tb-scn-item { display: flex; flex-direction: column; justify-content: space-between; padding: 14px 16px; }
+      /* 이름이 길면 기준가만 다음 줄로 (수량이 잘리지 않게) */
+      #root .tb-scn-item > div:first-child { flex-wrap: wrap; column-gap: 8px; row-gap: 2px; }
+      #root .tb-scn-item > div:first-child > div { white-space: nowrap; }
+      #root .tb-scn-item > div:first-child > div:last-child { margin-left: auto; }
+      #root .tb-scn-item .font-medium.text-sm { font-size: 16px; }
+      #root .tb-scn-item .text-xs { font-size: 13px; }
+      #root .tb-scn-item input[type=number] { width: 72px; }
+
+      /* ── 동기화 창: 조금 넓게 ── */
+      #root .tb-modal { max-width: 520px; padding: 26px; }
+      #root .tb-modal .text-xs { font-size: 13px; }
+    }
+    /* 추가매수·시나리오 탭은 화면 높이에 딱 맞추고 목록만 카드 안에서 스크롤한다 —
+       슬라이더를 움직이는 동안 오른쪽 결과가 화면 밖으로 밀려나지 않게.
+       키보드가 올라와 높이가 줄면(640px 미만) 이 고정을 풀고 페이지 전체가 스크롤된다 */
+    @media (min-width: 900px) and (orientation: landscape) and (min-height: 640px) {
+      #root .tb-app:has(.tb-panel-buy:not([style*="none"])),
+      #root .tb-app:has(.tb-panel-scn:not([style*="none"])) {
+        height: 100vh;
+        height: 100dvh;
+      }
+    }
   </style>
   <script>
     if ('serviceWorker' in navigator) {
@@ -352,18 +516,18 @@ function RatioCard({ result, label = '현재 담보비율', subLabel = null }) {
   const mark200 = (200 / MAX_DISPLAY) * 100;
 
   return (
-    <div className="bg-white rounded-2xl shadow-md p-5 mb-4">
+    <div className="tb-ratio bg-white rounded-2xl shadow-md p-5 mb-4">
       <div className="flex items-center justify-between mb-1">
         <div>
           <span className="text-gray-500 font-semibold">{label}</span>
           {subLabel && <div className="text-xs text-blue-500 font-medium mt-0.5">{subLabel}</div>}
         </div>
-        <span className={`text-4xl font-extrabold tabular-nums ${ratioClass}`}>{fmtP(ratio)}</span>
+        <span className={`tb-ratio-num text-4xl font-extrabold tabular-nums ${ratioClass}`}>{fmtP(ratio)}</span>
       </div>
-      <div className="text-right text-xs text-gray-400 mb-3">최저유지 140% · 필요담보금액 {fmtW(result.required)}</div>
+      <div className="tb-ratio-req text-right text-xs text-gray-400 mb-3">최저유지 140% · 필요담보금액 {fmtW(result.required)}</div>
 
       {/* 게이지 바 */}
-      <div className="relative mb-6">
+      <div className="tb-gauge relative mb-6">
         <div className="h-5 bg-gray-100 rounded-full overflow-visible">
           <div className={`h-full rounded-full transition-all duration-500 ${barClass}`}
                style={{ width: `${barPct}%` }} />
@@ -380,7 +544,7 @@ function RatioCard({ result, label = '현재 담보비율', subLabel = null }) {
         </div>
       </div>
 
-      <div className="grid grid-cols-3 gap-2 mb-3">
+      <div className="tb-ratio-grid3 grid grid-cols-3 gap-2 mb-3">
         {[
           { label: '총담보금액', val: total, bg: 'bg-blue-50',   txt: 'text-blue-800'   },
           { label: '원담보금액', val: won,   bg: 'bg-orange-50', txt: 'text-orange-800' },
@@ -393,7 +557,7 @@ function RatioCard({ result, label = '현재 담보비율', subLabel = null }) {
         ))}
       </div>
 
-      <div className="grid grid-cols-2 gap-2">
+      <div className="tb-ratio-grid2 grid grid-cols-2 gap-2">
         <div className={`rounded-xl p-2.5 text-center ${danger ? 'bg-red-50' : 'bg-gray-50'}`}>
           <div className="text-xs text-gray-400 mb-1">담보부족금액</div>
           <div className={`text-sm font-bold ${danger ? 'text-red-600' : 'text-gray-300'}`}>
@@ -433,10 +597,10 @@ function Tab1({ stocks, setStocks, bonds, setBonds, cash, setCash, loan, setLoan
   };
 
   return (
-    <div>
+    <div className="tb-inputs">
       {/* ── 넓은 화면(640px+): 테이블 ── */}
-      <div className="hidden sm:block overflow-x-auto mb-3">
-        <table className="w-full text-sm bg-white rounded-xl shadow overflow-hidden min-w-[420px]">
+      <div className="tb-table-wrap hidden sm:block overflow-x-auto mb-3">
+        <table className="tb-table w-full text-sm bg-white rounded-xl shadow overflow-hidden min-w-[420px]">
           <thead className="bg-slate-700 text-white text-xs">
             <tr>
               <th className="px-3 py-2 text-left whitespace-nowrap">종목명</th>
@@ -597,11 +761,11 @@ function Tab1({ stocks, setStocks, bonds, setBonds, cash, setCash, loan, setLoan
       </div>
 
       <button onClick={addStock}
-        className="mb-4 bg-blue-500 hover:bg-blue-600 text-white rounded-lg px-4 py-2 text-sm font-medium shadow">
+        className="tb-add mb-4 bg-blue-500 hover:bg-blue-600 text-white rounded-lg px-4 py-2 text-sm font-medium shadow">
         + 종목 추가
       </button>
 
-      <div className="bg-white rounded-xl shadow p-4">
+      <div className="tb-etc bg-white rounded-xl shadow p-4">
         <h3 className="font-semibold text-gray-600 text-sm mb-3">기타 자산 · 부채</h3>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
           {[
@@ -687,9 +851,9 @@ function Tab2({ stocks, bonds, cash, loan, extraBuys, setExtraBuys }) {
   const totalRatioChange = mergedResult.ratio - baseResult.ratio;
 
   return (
-    <div>
+    <div className="tb-buy">
       {/* ── 추가 매수 입력 폼 ── */}
-      <div className="bg-white rounded-xl shadow p-4 mb-4">
+      <div className="tb-buyform bg-white rounded-xl shadow p-4 mb-4">
         <h3 className="font-semibold text-gray-600 text-sm mb-3">매수 추가</h3>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
 
@@ -775,7 +939,7 @@ function Tab2({ stocks, bonds, cash, loan, extraBuys, setExtraBuys }) {
 
       {/* ── 추가매수 목록 ── */}
       {extraBuys.length > 0 && (
-        <div className="bg-white rounded-xl shadow p-4 mb-4">
+        <div className="tb-buylist bg-white rounded-xl shadow p-4 mb-4">
           <div className="flex justify-between items-center mb-3">
             <h3 className="font-semibold text-gray-600 text-sm">
               추가매수 목록
@@ -789,7 +953,7 @@ function Tab2({ stocks, bonds, cash, loan, extraBuys, setExtraBuys }) {
             </button>
           </div>
 
-          <div className="space-y-2">
+          <div className="tb-buyitems space-y-2">
             {extraBuys.map((buy, idx) => (
               <div key={buy.id}
                 className="flex items-center justify-between bg-slate-50 rounded-lg px-3 py-2 text-sm">
@@ -836,9 +1000,9 @@ function Tab2({ stocks, bonds, cash, loan, extraBuys, setExtraBuys }) {
       )}
 
       {/* ── 결과 비교 ── */}
-      <div className="bg-white rounded-xl shadow p-4">
+      <div className="tb-compare bg-white rounded-xl shadow p-4">
         <h3 className="font-semibold text-gray-600 text-sm mb-3">전후 비교</h3>
-        <div className="grid grid-cols-2 gap-3 mb-3">
+        <div className="tb-cmp-grid grid grid-cols-2 gap-3 mb-3">
           <div className="bg-slate-50 rounded-xl p-4 text-center">
             <div className="text-xs text-gray-400 mb-1">추가매수 전</div>
             <div className="text-2xl font-extrabold text-gray-700 tabular-nums">{fmtP(baseResult.ratio)}</div>
@@ -939,17 +1103,17 @@ function Tab3({ mergedStocks, bonds, cash, mergedLoan, extraBuys = [], changes, 
   const subLabel = extraBuyCount > 0 ? `추가매수 ${extraBuyCount}건 반영 중` : null;
 
   return (
-    <div>
+    <div className="tb-scn">
       <RatioCard result={result} label="시나리오 담보비율" subLabel={subLabel} />
 
       {Math.abs(diff) > 0.005 && (
-        <div className={`mb-4 text-center rounded-xl py-2.5 font-bold text-sm
+        <div className={`tb-scn-diff mb-4 text-center rounded-xl py-2.5 font-bold text-sm
           ${diff >= 0 ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'}`}>
           기준 대비 {diff >= 0 ? '▲' : '▼'} {Math.abs(diff).toFixed(2)}%p
         </div>
       )}
 
-      <div className="bg-white rounded-xl shadow p-4">
+      <div className="tb-scn-list bg-white rounded-xl shadow p-4">
         <div className="flex justify-between items-center mb-4">
           <div>
             <h3 className="font-semibold text-gray-600 text-sm">종목별 가격 시나리오</h3>
@@ -963,7 +1127,7 @@ function Tab3({ mergedStocks, bonds, cash, mergedLoan, extraBuys = [], changes, 
           </button>
         </div>
 
-        <div className="space-y-4">
+        <div className="tb-scn-items space-y-4">
           {mergedStocks.map(s => {
             const chg      = getChg(s.id);
             const simPrice = Math.max(0, s.currentPrice * (1 + chg / 100));
@@ -977,7 +1141,7 @@ function Tab3({ mergedStocks, bonds, cash, mergedLoan, extraBuys = [], changes, 
             };
 
             return (
-              <div key={s.id} className={`border rounded-xl p-3 ${isExtra ? 'border-blue-200 bg-blue-50/30' : 'border-gray-100'}`}>
+              <div key={s.id} className={`tb-scn-item border rounded-xl p-3 ${isExtra ? 'border-blue-200 bg-blue-50/30' : 'border-gray-100'}`}>
                 {/* 종목 헤더 */}
                 <div className="flex justify-between items-center mb-3">
                   <div>
@@ -1093,7 +1257,7 @@ function SyncModal({ data, onImport, onClose }) {
   return (
     <div className="fixed inset-0 bg-black/60 z-50 flex items-end sm:items-center justify-center p-4"
          onClick={e => e.target === e.currentTarget && onClose()}>
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-5">
+      <div className="tb-modal bg-white rounded-2xl shadow-2xl w-full max-w-sm p-5">
         <div className="flex justify-between items-center mb-4">
           <h2 className="font-bold text-gray-700 text-base">데이터 동기화</h2>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-xl leading-none">✕</button>
@@ -1274,7 +1438,7 @@ function App({ boot }) {
   ];
 
   return (
-    <div className="max-w-2xl mx-auto px-3 py-4 pb-10">
+    <div className="tb-app max-w-2xl mx-auto px-3 py-4 pb-10">
       {showSync && (
         <SyncModal
           data={{ stocks, bonds, cash, loan, extraBuys }}
@@ -1283,7 +1447,7 @@ function App({ boot }) {
         />
       )}
       {/* 헤더 */}
-      <div className="bg-slate-800 text-white rounded-2xl px-5 py-4 mb-4 shadow-lg">
+      <div className="tb-header bg-slate-800 text-white rounded-2xl px-5 py-4 mb-4 shadow-lg">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-xl font-extrabold tracking-tight">담보비율 계산기</h1>
@@ -1310,7 +1474,7 @@ function App({ boot }) {
       </div>
 
       {/* 탭 네비게이션 */}
-      <div className="flex gap-1 mb-4 bg-white rounded-xl p-1 shadow">
+      <div className="tb-tabs flex gap-1 mb-4 bg-white rounded-xl p-1 shadow">
         {TABS.map(t => (
           <button key={t.id} onClick={() => setTab(t.id)}
             className={`flex-1 py-2 text-xs font-semibold rounded-lg transition-all relative
@@ -1328,7 +1492,7 @@ function App({ boot }) {
       </div>
 
       {/* 탭 내용 — display로 숨기기/보이기 (언마운트 없음 → 상태 유지) */}
-      <div style={{ display: tab === 'portfolio' ? 'block' : 'none' }}>
+      <div className="tb-panel tb-panel-portfolio" style={{ display: tab === 'portfolio' ? '' : 'none' }}>
         <RatioCard result={baseResult} />
         <Tab1
           stocks={stocks} setStocks={setStocks}
@@ -1337,13 +1501,13 @@ function App({ boot }) {
           loan={loan}     setLoan={setLoan}
         />
       </div>
-      <div style={{ display: tab === 'buy' ? 'block' : 'none' }}>
+      <div className="tb-panel tb-panel-buy" style={{ display: tab === 'buy' ? '' : 'none' }}>
         <Tab2
           stocks={stocks} bonds={bonds} cash={cash} loan={loan}
           extraBuys={extraBuys} setExtraBuys={setExtraBuys}
         />
       </div>
-      <div style={{ display: tab === 'scenario' ? 'block' : 'none' }}>
+      <div className="tb-panel tb-panel-scn" style={{ display: tab === 'scenario' ? '' : 'none' }}>
         <Tab3
           mergedStocks={mergedStocks}
           bonds={bonds} cash={cash}
