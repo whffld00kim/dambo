@@ -1,77 +1,69 @@
-const CACHE_NAME = 'dambo-v11';   // v9: 태블릿 가로 화면 두 단 배치 (2026-09-28)
-                                  // v8: 시나리오가 기본값 = 추가매수 최저가, 일반·신용 연동 (2026-09-07)
-                                  // v7: 좁은 화면(폴드 접힘)에서 시나리오가 입력칸 잘림 수정 (2026-09-07)
-                                  // v6: React CDN 버전 18.3.1로 고정 (2026-09-03)
+// Dambo — 저장된 사본으로 먼저 열고, 뒤에서 새 파일을 받아 캐시를 바꿔 둔다 (2026-09-29, 투자 트래커와 같은 방식).
+// 그전엔 네트워크 우선이라 열 때마다 앱 파일·라이브러리 응답을 기다렸다.
+// ⚠ index.html을 고치면 CACHE 버전을 올린다. 새 버전이 설치되면 페이지가 스스로 새로고침해 바로 새 화면이 뜬다.
+// ⚠ index.html이 부르는 파일을 바꾸면 OWN·CDN 목록도 같이 고친다 (한 글자라도 다르면 미리 받아 둔 의미가 없다).
+const CACHE = 'dambo-v12';
 
-// 외부 라이브러리만 캐시한다 (무거워서 — 오프라인/속도 목적).
-// index.html이 실제로 불러오는 URL과 한 글자도 다르면 미리 받아두는 의미가 없다.
-const CDN_ASSETS = [
-  'https://unpkg.com/react@18.3.1/umd/react.production.min.js',
-  'https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js',
-  'https://unpkg.com/@babel/standalone@7.24.7/babel.min.js',
-  'https://cdn.tailwindcss.com',
-  'https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js',
-  'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js',
-  'https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js',
+// 이 앱의 파일
+const OWN = [
+  "./",
+  "./index.html",
+  "./manifest.json",
+  "./icon.svg"
 ];
 
-// 캐시해도 되는 곳. 여기 없는 호스트는 무조건 네트워크로 보낸다.
-// ⚠️ 이 목록을 넓히지 말 것 — 로그인(identitytoolkit)과 DB 응답까지 캐시되면
-//    지난 응답이 되살아나 로그인이 이상하게 풀리거나 옛 잔고가 보인다.
-const CACHEABLE_HOSTS = ['unpkg.com', 'cdn.tailwindcss.com', 'www.gstatic.com'];
+// 외부 라이브러리 (버전이 주소에 박혀 있어 내용이 안 바뀐다)
+const CDN = [
+  "https://cdn.tailwindcss.com",
+  "https://unpkg.com/@babel/standalone@7.24.7/babel.min.js",
+  "https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js",
+  "https://unpkg.com/react@18.3.1/umd/react.production.min.js",
+  "https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js",
+  "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js",
+  "https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"
+];
 
-self.addEventListener('install', event => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => cache.addAll(CDN_ASSETS)).catch(() => {})
-  );
-  self.skipWaiting(); // 즉시 새 서비스워커 활성화
+// 캐시해도 되는 곳. 여기 없는 호스트는 손대지 않는다.
+// ⚠ 이 목록을 넓히지 말 것 — 로그인(identitytoolkit)·DB(firebaseio)·Storage 응답까지 캐시되면
+//    지난 응답이 되살아나 로그인이 이상하게 풀리거나 옛 데이터가 보인다.
+const CDN_HOSTS = ["cdn.tailwindcss.com", "unpkg.com", "www.gstatic.com"];
+
+self.addEventListener('install', e => {
+  e.waitUntil(caches.open(CACHE).then(cache => Promise.all([
+    // 브라우저 HTTP 캐시(GitHub Pages max-age=600)를 거치지 않고 새로 받는다
+    ...OWN.map(u => cache.add(new Request(u, { cache: 'reload' }))),
+    ...CDN.map(u => cache.add(u)
+      .catch(() => fetch(u, { mode: 'no-cors' }).then(r => cache.put(u, r)))
+      .catch(() => {})),
+  ])));
+  self.skipWaiting();
 });
 
-self.addEventListener('activate', event => {
-  event.waitUntil(
-    caches.keys().then(keys =>
-      Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)))
-    )
+self.addEventListener('activate', e => {
+  e.waitUntil(
+    caches.keys()
+      // 이 앱의 옛 캐시만 지운다. 웹앱들이 같은 주소(github.io)를 나눠 써서 캐시 저장소도 하나다 —
+      // 접두사를 안 가리면 다른 앱의 캐시까지 지운다
+      .then(keys => Promise.all(keys.filter(k => k.startsWith('dambo-') && k !== CACHE).map(k => caches.delete(k))))
+      .then(() => self.clients.claim())
   );
-  self.clients.claim(); // 즉시 모든 탭 제어
 });
 
-self.addEventListener('fetch', event => {
-  const url = new URL(event.request.url);
+self.addEventListener('fetch', e => {
+  const req = e.request;
+  if (req.method !== 'GET') return;
+  let url;
+  try { url = new URL(req.url); } catch { return; }
+  const own = url.origin === self.location.origin && req.url.startsWith(self.registration.scope);
+  if (!own && !CDN_HOSTS.includes(url.hostname)) return;
 
-  // ── HTML / manifest / sw / icon : 항상 네트워크 우선 ──
-  // 코드가 업데이트되면 캐시 없이 최신본을 바로 가져옴
-  const isAppFile =
-    event.request.destination === 'document' ||
-    url.pathname.endsWith('.html') ||
-    url.pathname.endsWith('manifest.json') ||
-    url.pathname.endsWith('sw.js') ||
-    url.pathname.endsWith('icon.svg') ||
-    url.pathname === '/' ||
-    url.pathname.endsWith('/dambo/');
-
-  if (isAppFile) {
-    event.respondWith(
-      fetch(event.request)
-        .then(res => res)
-        .catch(() => caches.match(event.request)) // 오프라인 시 캐시 폴백
-    );
-    return;
-  }
-
-  // ── 그 외 : 허용한 CDN만 캐시 우선, 나머지는 손대지 않는다 ──
-  if (!CACHEABLE_HOSTS.includes(url.hostname)) return;
-
-  event.respondWith(
-    caches.match(event.request).then(cached => {
-      if (cached) return cached;
-      return fetch(event.request).then(response => {
-        if (response.ok) {
-          const clone = response.clone();
-          caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
-        }
-        return response;
-      });
-    })
-  );
+  e.respondWith(caches.open(CACHE).then(async cache => {
+    const cached = await cache.match(req);
+    const fresh = (own ? fetch(req.url, { cache: 'no-cache' }) : fetch(req)).then(res => {
+      if (res && (res.ok || res.type === 'opaque')) cache.put(req, res.clone());
+      return res;
+    });
+    if (cached) { e.waitUntil(fresh.catch(() => {})); return cached; }
+    return fresh.catch(() => req.destination === 'document' ? cache.match('./index.html') : Response.error());
+  }));
 });
