@@ -45,6 +45,7 @@ html, body { overscroll-behavior-y: none; }
     .lock-icon  { font-size: 40px; }
     .lock-title { font-size: 18px; font-weight: 800; color: #1e293b; margin-top: 10px; }
     .lock-sub   { font-size: 12px; color: #64748b; margin-top: 6px; }
+    #appLockScreen.resuming .lock-btn-google { display: none; }   /* 로그인했던 기기 (2026-09-29) */
     .lock-btn-google {
       margin-top: 20px; width: 100%; display: flex; align-items: center; justify-content: center;
       gap: 8px; padding: 12px; border: 1px solid #e2e8f0; border-radius: 12px;
@@ -251,6 +252,16 @@ html, body { overscroll-behavior-y: none; }
       <div class="lock-error" id="lockError"></div>
     </div>
   </div>
+<!-- 로그인했던 기기에서는 로그인 버튼 대신 "불러오는 중…"만 보인다 (2026-09-29 — 열 때마다 로그인 화면이 잠깐 비쳤다).
+     실제로 로그인이 풀렸으면 onAuthStateChanged가 표시를 지우고 버튼을 되살린다 -->
+<script>
+  try {
+    if (localStorage.getItem('signed_in_before')) {
+      document.getElementById('appLockScreen').classList.add('resuming');
+      document.getElementById('lockSub').textContent = '불러오는 중…';
+    }
+  } catch (e) {}
+</script>
 
   <div id="root"></div>
 
@@ -346,6 +357,12 @@ html, body { overscroll-behavior-y: none; }
     if (!user) {
       currentRole = null;
       if (btn) btn.disabled = false;
+      try { localStorage.removeItem('signed_in_before'); } catch {}
+      if (lock && lock.classList.contains('resuming')) {
+        lock.classList.remove('resuming');
+        const sub = document.getElementById('lockSub');
+        if (sub) sub.textContent = '구글 계정으로 로그인하세요';
+      }
       if (lock) { lock.style.display = 'flex'; document.body.style.overflow = 'hidden'; }
       return;
     }
@@ -363,6 +380,7 @@ html, body { overscroll-behavior-y: none; }
       return;
     }
     currentRole = role;
+    try { localStorage.setItem('signed_in_before', '1'); } catch {}
 
     // 클라우드를 한 번 읽는다(실시간 구독이 아니다). 못 읽으면 이 기기에 남은 값으로 연다.
     let cloud = null, cloudError = null;
