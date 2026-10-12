@@ -326,16 +326,33 @@ html, body { overscroll-behavior-y: none; }
    * 앱 → 클라우드 저장. 관리자만 쓴다.
    * 추가매수(extraBuys)도 같이 올린다 (2026-10-09 사용자: 폰에서 넣은 6건이 태블릿에 안 보인다).
    * 그전엔 "시뮬레이션이라 기기 전용"으로 두었는데, 사용자는 기기 간에 같이 보길 원한다.
-   * 문서 통째로 덮어쓰는 방식은 그대로다 — 마지막 저장이 이긴다.
+   * 문서 통째로 덮어쓰는 방식은 그대로지만, 2026-10-12부터 **옛 값으로는 덮지 않는다**:
+   * 이 기기가 마지막으로 본 updatedAt과 클라우드의 것이 다르면(PC에서 Claude가 넣었거나 다른 기기가 저장)
+   * 저장을 멈추고 'stale'을 돌려준다 → 앱이 최신 값을 다시 불러온다.
+   * 트랜잭션이라 오프라인에서 고친 것도 다시 연결될 때 서버 값과 비교한 뒤에만 들어간다.
    */
+  let knownUpdatedAt = null;       // 이 기기가 마지막으로 읽거나 쓴 클라우드 문서의 updatedAt
   window.damboSave = function (portfolio) {
     if (currentRole !== 'admin') return Promise.resolve('viewer');
-    return db.ref(DAMBO_PATH).set({
-      portfolio: portfolio,
-      updatedAt: Date.now(),
-      source: 'app',
-    }).then(() => 'ok').catch(e => { console.warn('클라우드 저장 실패:', e.message); return 'error'; });
+    const expected = knownUpdatedAt;
+    const next = { portfolio: portfolio, updatedAt: Date.now(), source: 'app' };
+    return db.ref(DAMBO_PATH).transaction(cur => {
+      if (cur && (cur.updatedAt ?? null) !== expected) return;   // 그사이 다른 곳에서 바뀜 → 쓰지 않는다
+      return next;
+    }, null, false).then(r => {
+      if (!r.committed) return 'stale';
+      knownUpdatedAt = next.updatedAt;
+      return 'ok';
+    }).catch(e => { console.warn('클라우드 저장 실패:', e.message); return 'error'; });
   };
+
+  // 앱으로 다시 돌아왔을 때 클라우드가 바뀌어 있으면 새로 연다 (며칠 열어 둔 화면의 옛 값으로 고치지 않게)
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState !== 'visible' || !currentRole) return;
+    db.ref(DAMBO_PATH + '/updatedAt').get().then(s => {
+      if ((s.val() ?? null) !== knownUpdatedAt) location.reload();
+    }).catch(() => {});
+  });
 
   // 바벨이 JSX를 컴파일하는 데 시간이 걸린다. 인증이 먼저 끝나는 경우가 있어서
   // 준비되면 부르고, 아직이면 대기시켜 둔다. (둘 중 어느 쪽이 먼저여도 동작한다)
@@ -380,6 +397,7 @@ html, body { overscroll-behavior-y: none; }
     let cloud = null, cloudError = null;
     try {
       cloud = (await db.ref(DAMBO_PATH).get()).val();
+      knownUpdatedAt = cloud ? (cloud.updatedAt ?? null) : null;
     } catch (e) {
       cloudError = e.message;
     }
@@ -595,7 +613,8 @@ function RatioCard({ result, label = '현재 담보비율', subLabel = null }) {
 function Tab1({ stocks, setStocks, bonds, setBonds, cash, setCash, loan, setLoan }) {
   const [editId,   setEditId]   = useState(null);
   const [editData, setEditData] = useState({});
-  const nextId = useRef(100);
+  // 새 종목 번호는 지금 있는 번호의 최댓값 + 1 (2026-10-12 — 열 때마다 100부터 다시 세서 저장된 종목과 겹쳤다)
+  const newStockId = () => Math.max(99, ...stocks.map(s => Number(s.id) || 0)) + 1;
 
   const startEdit  = (s) => { setEditId(s.id); setEditData({ ...s }); };
   const saveEdit   = () => {
@@ -605,7 +624,7 @@ function Tab1({ stocks, setStocks, bonds, setBonds, cash, setCash, loan, setLoan
   const cancelEdit  = () => setEditId(null);
   const deleteStock = (id) => setStocks(prev => prev.filter(s => s.id !== id));
   const addStock    = () => {
-    const ns = { id: nextId.current++, name: '신규종목', quantity: 0, avgPrice: 0, currentPrice: 0, type: 'normal' };
+    const ns = { id: newStockId(), name: '신규종목', quantity: 0, avgPrice: 0, currentPrice: 0, type: 'normal' };
     setStocks(prev => [...prev, ns]);
     startEdit(ns);
   };
@@ -802,7 +821,8 @@ function Tab1({ stocks, setStocks, bonds, setBonds, cash, setCash, loan, setLoan
    탭 2 : 추가매수 시뮬레이션 (다중 입력)
 ══════════════════════════════════ */
 function Tab2({ stocks, bonds, cash, loan, extraBuys, setExtraBuys }) {
-  const nextId = useRef(500);
+  // 추가매수 번호도 최댓값 + 1 (2026-10-12 — 500부터 다시 세서 ✕ 하나에 두 건이 지워졌다)
+  const newBuyId = () => Math.max(499, ...extraBuys.map(b => Number(b.id) || 0)) + 1;
 
   /* 입력 폼 상태 */
   const [selId,    setSelId]    = useState('new');
@@ -847,7 +867,7 @@ function Tab2({ stocks, bonds, cash, loan, extraBuys, setExtraBuys }) {
       ? newName
       : (stocks.find(s => s.id === parseInt(selId))?.name || '?');
     setExtraBuys(prev => [...prev, {
-      id: nextId.current++,
+      id: newBuyId(),
       stockId: selId,
       name: stockName,
       qty: addQty,
@@ -1338,6 +1358,9 @@ function CloudBar({ state, updatedAt, source, role, email, onOpenSync }) {
 /* 클라우드에서 받은 값이 있으면 그걸 쓰고, 없으면(오프라인 등) 이 기기에 남은 값을 쓴다 */
 function pick(cloud, local, init, key) {
   if (cloud && cloud[key] != null) return cloud[key];
+  // 클라우드 문서는 있는데 목록 키가 없다 = 다 지워서 빈 배열이 된 것(RTDB는 빈 배열을 키째 버린다).
+  // 이 기기의 옛 목록으로 되살리지 않는다 (2026-10-12 점검)
+  if (cloud && Array.isArray(init)) return [];
   if (local && local[key] != null) return local[key];
   return init;
 }
@@ -1366,6 +1389,14 @@ function App({ boot }) {
     saveStorage({ stocks, bonds, cash, loan, extraBuys });
   }, [stocks, bonds, cash, loan, extraBuys]);
 
+  /* 저장하려는데 그사이 PC나 다른 기기에서 클라우드가 바뀌었으면(2026-10-12) 이 화면의 값은 낡은 것이다 —
+     덮지 않고 알린 뒤 최신 값으로 다시 연다. 방금 고친 칸은 다시 넣어야 한다 */
+  const onStale = (r) => {
+    if (r !== 'stale') return;
+    alert('PC나 다른 기기에서 값이 바뀌어 있었습니다.\n덮어쓰지 않고 최신 값을 불러옵니다. 방금 고친 내용은 다시 입력해 주세요.');
+    location.reload();
+  };
+
   /* 보유 내역·추가매수가 바뀌면 클라우드에도 올린다 (관리자만). 타이핑 중에 매번 쓰지 않도록 잠깐 묶는다 */
   const firstRun = useRef(true);
   useEffect(() => {
@@ -1373,7 +1404,7 @@ function App({ boot }) {
       firstRun.current = false;
       // 처음 한 번: 클라우드 문서에 아직 추가매수가 없는데 이 기기에 있으면 올린다 (2026-10-09 전환 — 폰의 6건이 태블릿으로 가게)
       if (boot.role === 'admin' && cloud && !cloud.extraBuysSynced && extraBuys.length > 0) {
-        window.damboSave({ stocks, bonds, cash, loan, extraBuys, extraBuysSynced: true });
+        window.damboSave({ stocks, bonds, cash, loan, extraBuys, extraBuysSynced: true }).then(onStale);
       }
       return;
     }
@@ -1382,7 +1413,7 @@ function App({ boot }) {
     const t = setTimeout(() => {
       // extraBuysSynced: 비어 있는 배열은 RTDB가 키째 버리므로, "비웠다"와 "옛 문서라 키가 없다"를 가르는 표시
       window.damboSave({ stocks, bonds, cash, loan, extraBuys, extraBuysSynced: true })
-        .then(r => setCloudState(r === 'ok' ? 'synced' : 'error'));
+        .then(r => { onStale(r); setCloudState(r === 'ok' ? 'synced' : 'error'); });
     }, 800);
     return () => clearTimeout(t);
   }, [stocks, bonds, cash, loan, extraBuys]);
@@ -1500,8 +1531,12 @@ function App({ boot }) {
 
 /* 로그인·클라우드 읽기가 끝난 뒤에야 그린다. 부트스트랩 스크립트가 불러준다.
    바벨 컴파일이 인증보다 늦게 끝나는 경우가 있어서, 먼저 와 있던 값이 있으면 그걸로 바로 연다. */
+// 루트는 하나만 만든다 — 로그인이 풀렸다 돌아오면 이 함수가 다시 불려 화면이 겹쳤다 (2026-10-12).
+// 다시 불리면 key를 바꿔 App을 새로 띄워 그때 받은 클라우드 값으로 시작한다
+let damboRoot = null, damboBootCount = 0;
 window.startDamboApp = function (payload) {
-  ReactDOM.createRoot(document.getElementById('root')).render(<App boot={payload} />);
+  if (!damboRoot) damboRoot = ReactDOM.createRoot(document.getElementById('root'));
+  damboRoot.render(<App key={++damboBootCount} boot={payload} />);
 };
 if (window.__damboPending) window.startDamboApp(window.__damboPending);
   </script>
