@@ -2,20 +2,20 @@
 // 그전엔 네트워크 우선이라 열 때마다 앱 파일·라이브러리 응답을 기다렸다.
 // ⚠ index.html을 고치면 CACHE 버전을 올린다. 새 버전이 설치되면 페이지가 스스로 새로고침해 바로 새 화면이 뜬다.
 // ⚠ index.html이 부르는 파일을 바꾸면 OWN·CDN 목록도 같이 고친다 (한 글자라도 다르면 미리 받아 둔 의미가 없다).
-const CACHE = 'dambo-v15';
+const CACHE = 'dambo-v16';   // v16: 화면 코드 미리 변환(app.js, 바벨 뺌) + 기기 사본으로 먼저 열기 + 전용 주소 (2026-10-15)
 
 // 이 앱의 파일
 const OWN = [
   "./",
   "./index.html",
   "./manifest.json",
-  "./icon.svg"
+  "./icon.svg",
+  "./app.js?v=20261015"
 ];
 
 // 외부 라이브러리 (버전이 주소에 박혀 있어 내용이 안 바뀐다)
 const CDN = [
   "https://cdn.tailwindcss.com",
-  "https://unpkg.com/@babel/standalone@7.24.7/babel.min.js",
   "https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js",
   "https://unpkg.com/react@18.3.1/umd/react.production.min.js",
   "https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js",
