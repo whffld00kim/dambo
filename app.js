@@ -720,6 +720,11 @@ function Tab3({
   const result = useMemo(() => calc(simStocks, bonds, cash, mergedLoan), [simStocks, bonds, cash, mergedLoan]);
   const baseResult = useMemo(() => calc(mergedStocks, bonds, cash, mergedLoan), [mergedStocks, bonds, cash, mergedLoan]);
   const diff = result.ratio - baseResult.ratio;
+  const extraCashCost = extraBuys.filter(b => b.type !== 'credit').reduce((sum, b) => sum + (b.qty || 0) * (b.price || 0), 0);
+  const simBalance = result.total - mergedLoan - extraCashCost;
+  const baseBalance = baseResult.total - mergedLoan - extraCashCost;
+  const balDiff = simBalance - baseBalance;
+  const balPct = baseBalance > 0 ? balDiff / baseBalance * 100 : 0;
   const subLabel = extraBuyCount > 0 ? `추가매수 ${extraBuyCount}건 반영 중` : null;
   return React.createElement("div", {
     className: "tb-scn"
@@ -731,6 +736,21 @@ function Tab3({
     className: `tb-scn-diff mb-4 text-center rounded-xl py-2.5 font-bold text-sm
           ${diff >= 0 ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'}`
   }, "\uAE30\uC900 \uB300\uBE44 ", diff >= 0 ? '▲' : '▼', " ", Math.abs(diff).toFixed(2), "%p"), React.createElement("div", {
+    className: "tb-scn-bal bg-white rounded-xl shadow p-4 mb-4"
+  }, React.createElement("div", {
+    className: "flex justify-between items-baseline"
+  }, React.createElement("span", {
+    className: "text-gray-500 font-semibold text-sm"
+  }, "\uC2DC\uB098\uB9AC\uC624 \uCD1D\uC794\uACE0"), React.createElement("span", {
+    className: `text-2xl font-extrabold tabular-nums
+            ${balDiff > 0.5 ? 'text-red-500' : balDiff < -0.5 ? 'text-blue-600' : 'text-gray-700'}`
+  }, fmtW(simBalance))), React.createElement("div", {
+    className: "flex justify-between text-xs text-gray-400 mt-1.5"
+  }, React.createElement("span", null, "\uC9C0\uAE08 ", fmtW(baseBalance)), Math.abs(balDiff) > 0.5 ? React.createElement("span", {
+    className: `tabular-nums font-medium ${balDiff > 0 ? 'text-red-500' : 'text-blue-600'}`
+  }, balDiff > 0 ? '▲ +' : '▼ −', fmtW(Math.abs(balDiff)), " (", balDiff > 0 ? '+' : '−', Math.abs(balPct).toFixed(1), "%)") : React.createElement("span", null, "\uBCC0\uD654 \uC5C6\uC74C")), React.createElement("div", {
+    className: "text-xs text-gray-300 mt-1"
+  }, "\uC8FC\uC2DD + \uCC44\uAD8C + \uD604\uAE08 \u2212 \uC2E0\uC6A9\uB300\uCD9C (\uC99D\uAD8C\uC0AC \uCD1D\uD3C9\uAC00\uAE08\uC561)")), React.createElement("div", {
     className: "tb-scn-list bg-white rounded-xl shadow p-4"
   }, React.createElement("div", {
     className: "flex justify-between items-center mb-4"

@@ -672,6 +672,16 @@ function Tab3({ mergedStocks, bonds, cash, mergedLoan, extraBuys = [], changes, 
   const baseResult = useMemo(() => calc(mergedStocks, bonds, cash, mergedLoan),  [mergedStocks, bonds, cash, mergedLoan]);
   const diff       = result.ratio - baseResult.ratio;
 
+  /* 계좌 총잔고 = 증권사 「총평가금액」 = 주식 + 채권 + 현금 − 신용대출 (2026-10-15 사용자 요청).
+     일반 추가매수는 현금으로 사므로 그 금액을 뺀다(calc의 cash엔 반영돼 있지 않다). 신용 추가매수는 대출로 이미 상쇄 */
+  const extraCashCost = extraBuys
+    .filter(b => b.type !== 'credit')
+    .reduce((sum, b) => sum + (b.qty || 0) * (b.price || 0), 0);
+  const simBalance  = result.total     - mergedLoan - extraCashCost;
+  const baseBalance = baseResult.total - mergedLoan - extraCashCost;
+  const balDiff     = simBalance - baseBalance;
+  const balPct      = baseBalance > 0 ? (balDiff / baseBalance) * 100 : 0;
+
   const subLabel = extraBuyCount > 0 ? `추가매수 ${extraBuyCount}건 반영 중` : null;
 
   return (
@@ -684,6 +694,26 @@ function Tab3({ mergedStocks, bonds, cash, mergedLoan, extraBuys = [], changes, 
           기준 대비 {diff >= 0 ? '▲' : '▼'} {Math.abs(diff).toFixed(2)}%p
         </div>
       )}
+
+      {/* 시나리오 가격일 때 계좌 총잔고 (증권사 「총평가금액」과 같은 기준) */}
+      <div className="tb-scn-bal bg-white rounded-xl shadow p-4 mb-4">
+        <div className="flex justify-between items-baseline">
+          <span className="text-gray-500 font-semibold text-sm">시나리오 총잔고</span>
+          <span className={`text-2xl font-extrabold tabular-nums
+            ${balDiff > 0.5 ? 'text-red-500' : balDiff < -0.5 ? 'text-blue-600' : 'text-gray-700'}`}>
+            {fmtW(simBalance)}
+          </span>
+        </div>
+        <div className="flex justify-between text-xs text-gray-400 mt-1.5">
+          <span>지금 {fmtW(baseBalance)}</span>
+          {Math.abs(balDiff) > 0.5 ? (
+            <span className={`tabular-nums font-medium ${balDiff > 0 ? 'text-red-500' : 'text-blue-600'}`}>
+              {balDiff > 0 ? '▲ +' : '▼ −'}{fmtW(Math.abs(balDiff))} ({balDiff > 0 ? '+' : '−'}{Math.abs(balPct).toFixed(1)}%)
+            </span>
+          ) : <span>변화 없음</span>}
+        </div>
+        <div className="text-xs text-gray-300 mt-1">주식 + 채권 + 현금 − 신용대출 (증권사 총평가금액)</div>
+      </div>
 
       <div className="tb-scn-list bg-white rounded-xl shadow p-4">
         <div className="flex justify-between items-center mb-4">
