@@ -207,7 +207,11 @@ function Tab1({ stocks, setStocks, bonds, setBonds, cash, setCash, loan, setLoan
     setEditId(null);
   };
   const cancelEdit  = () => setEditId(null);
-  const deleteStock = (id) => setStocks(prev => prev.filter(s => s.id !== id));
+  // 지우기 전에 한 번 묻는다 (2026-10-17 — 10/15 폰에서 값을 고치다 에이피알(일반) 줄이 확인 없이 지워졌다. 「수정」 바로 옆이라 잘못 눌리기 쉽다)
+  const deleteStock = (s) => {
+    if (!confirm(`${s.name}(${s.type === 'credit' ? '신용' : '일반'}) 종목을 지울까요?`)) return;
+    setStocks(prev => prev.filter(x => x.id !== s.id));
+  };
   const addStock    = () => {
     const ns = { id: newStockId(), name: '신규종목', quantity: 0, avgPrice: 0, currentPrice: 0, type: 'normal' };
     setStocks(prev => [...prev, ns]);
@@ -288,7 +292,7 @@ function Tab1({ stocks, setStocks, bonds, setBonds, cash, setCash, loan, setLoan
                   <td className="px-3 py-2 text-center whitespace-nowrap">
                     <button onClick={() => startEdit(s)}
                       className="text-blue-500 hover:text-blue-700 text-xs mr-2">수정</button>
-                    <button onClick={() => deleteStock(s.id)}
+                    <button onClick={() => deleteStock(s)}
                       className="text-red-400 hover:text-red-600 text-xs">삭제</button>
                   </td>
                 </tr>
@@ -361,7 +365,7 @@ function Tab1({ stocks, setStocks, bonds, setBonds, cash, setCash, loan, setLoan
                 <div className="shrink-0 whitespace-nowrap">
                   <button onClick={() => startEdit(s)}
                     className="text-blue-500 text-xs mr-2">수정</button>
-                  <button onClick={() => deleteStock(s.id)}
+                  <button onClick={() => deleteStock(s)}
                     className="text-red-400 text-xs">삭제</button>
                 </div>
               </div>

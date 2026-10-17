@@ -251,7 +251,10 @@ function Tab1({
     setEditId(null);
   };
   const cancelEdit = () => setEditId(null);
-  const deleteStock = id => setStocks(prev => prev.filter(s => s.id !== id));
+  const deleteStock = s => {
+    if (!confirm(`${s.name}(${s.type === 'credit' ? '신용' : '일반'}) 종목을 지울까요?`)) return;
+    setStocks(prev => prev.filter(x => x.id !== s.id));
+  };
   const addStock = () => {
     const ns = {
       id: newStockId(),
@@ -365,7 +368,7 @@ function Tab1({
       onClick: () => startEdit(s),
       className: "text-blue-500 hover:text-blue-700 text-xs mr-2"
     }, "\uC218\uC815"), React.createElement("button", {
-      onClick: () => deleteStock(s.id),
+      onClick: () => deleteStock(s),
       className: "text-red-400 hover:text-red-600 text-xs"
     }, "\uC0AD\uC81C")));
   })))), React.createElement("div", {
@@ -447,7 +450,7 @@ function Tab1({
       onClick: () => startEdit(s),
       className: "text-blue-500 text-xs mr-2"
     }, "\uC218\uC815"), React.createElement("button", {
-      onClick: () => deleteStock(s.id),
+      onClick: () => deleteStock(s),
       className: "text-red-400 text-xs"
     }, "\uC0AD\uC81C"))), React.createElement("div", {
       className: "flex items-center justify-between text-xs"
