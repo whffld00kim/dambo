@@ -3,7 +3,8 @@
    이제 미리 변환한 app.js 를 부른다. 바벨은 PC에만 있다 */
 const { useState, useMemo, useRef, useEffect } = React;
 
-const MIN_RATIO = 140;
+// 삼성증권 신용 최저유지(적용)비율. 2026-11-10 140 → 130 (사용자 신용담보비율 화면 「적용비율 130%」). 화면 글자·게이지 표시도 이 값을 따른다
+const MIN_RATIO = 130;
 
 /* ── 숫자 포매터 ── */
 const fmt  = (n) => (isNaN(n) || n == null) ? '0' : Math.round(n).toLocaleString('ko-KR');
@@ -129,7 +130,7 @@ function RatioCard({ result, label = '현재 담보비율', subLabel = null }) {
 
   const MAX_DISPLAY = 350;
   const barPct  = Math.min(100, (ratio / MAX_DISPLAY) * 100);
-  const mark140 = (140 / MAX_DISPLAY) * 100;
+  const markMin = (MIN_RATIO / MAX_DISPLAY) * 100;
   const mark200 = (200 / MAX_DISPLAY) * 100;
 
   return (
@@ -141,7 +142,7 @@ function RatioCard({ result, label = '현재 담보비율', subLabel = null }) {
         </div>
         <span className={`tb-ratio-num text-4xl font-extrabold tabular-nums ${ratioClass}`}>{fmtP(ratio)}</span>
       </div>
-      <div className="tb-ratio-req text-right text-xs text-gray-400 mb-3">최저유지 140% · 필요담보금액 {fmtW(result.required)}</div>
+      <div className="tb-ratio-req text-right text-xs text-gray-400 mb-3">최저유지 {MIN_RATIO}% · 필요담보금액 {fmtW(result.required)}</div>
 
       {/* 게이지 바 */}
       <div className="tb-gauge relative mb-6">
@@ -150,8 +151,8 @@ function RatioCard({ result, label = '현재 담보비율', subLabel = null }) {
                style={{ width: `${barPct}%` }} />
         </div>
         <div className="absolute top-0 bottom-0 flex flex-col items-center"
-             style={{ left: `${mark140}%`, transform: 'translateX(-50%)' }}>
-          <div className="absolute -top-5 text-xs font-bold text-red-500 whitespace-nowrap">140%</div>
+             style={{ left: `${markMin}%`, transform: 'translateX(-50%)' }}>
+          <div className="absolute -top-5 text-xs font-bold text-red-500 whitespace-nowrap">{MIN_RATIO}%</div>
           <div className="w-0.5 h-5 bg-red-500 mt-0" />
         </div>
         <div className="absolute top-0 bottom-0 flex flex-col items-center"
@@ -182,7 +183,7 @@ function RatioCard({ result, label = '현재 담보비율', subLabel = null }) {
           </div>
         </div>
         <div className={`rounded-xl p-2.5 text-center ${danger ? 'bg-red-50' : 'bg-emerald-50'}`}>
-          <div className="text-xs text-gray-400 mb-1">140% 여유금액</div>
+          <div className="text-xs text-gray-400 mb-1">{MIN_RATIO}% 여유금액</div>
           <div className={`text-sm font-bold ${danger ? 'text-red-600' : 'text-emerald-600'}`}>
             {danger ? `-${fmtW(shortage)}` : fmtW(surplus)}
           </div>
@@ -1079,7 +1080,7 @@ function App({ boot }) {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-xl font-extrabold tracking-tight">담보비율 계산기</h1>
-            <p className="text-slate-400 text-xs mt-0.5">삼성증권 신용융자 · 최저유지 140%</p>
+            <p className="text-slate-400 text-xs mt-0.5">삼성증권 신용융자 · 최저유지 {MIN_RATIO}%</p>
           </div>
           <div className="text-right">
             <div className={`text-3xl font-extrabold tabular-nums ${ratioClass}`}>

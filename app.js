@@ -5,7 +5,7 @@ const {
   useRef,
   useEffect
 } = React;
-const MIN_RATIO = 140;
+const MIN_RATIO = 130;
 const fmt = n => isNaN(n) || n == null ? '0' : Math.round(n).toLocaleString('ko-KR');
 const fmtW = n => `${fmt(n)}원`;
 const fmtP = n => isFinite(n) ? `${n.toFixed(2)}%` : '∞%';
@@ -137,7 +137,7 @@ function RatioCard({
   const barClass = danger ? 'bg-red-500' : warning ? 'bg-yellow-400' : 'bg-emerald-500';
   const MAX_DISPLAY = 350;
   const barPct = Math.min(100, ratio / MAX_DISPLAY * 100);
-  const mark140 = 140 / MAX_DISPLAY * 100;
+  const markMin = MIN_RATIO / MAX_DISPLAY * 100;
   const mark200 = 200 / MAX_DISPLAY * 100;
   return React.createElement("div", {
     className: "tb-ratio bg-white rounded-2xl shadow-md p-5 mb-4"
@@ -151,7 +151,7 @@ function RatioCard({
     className: `tb-ratio-num text-4xl font-extrabold tabular-nums ${ratioClass}`
   }, fmtP(ratio))), React.createElement("div", {
     className: "tb-ratio-req text-right text-xs text-gray-400 mb-3"
-  }, "\uCD5C\uC800\uC720\uC9C0 140% \xB7 \uD544\uC694\uB2F4\uBCF4\uAE08\uC561 ", fmtW(result.required)), React.createElement("div", {
+  }, "\uCD5C\uC800\uC720\uC9C0 ", MIN_RATIO, "% \xB7 \uD544\uC694\uB2F4\uBCF4\uAE08\uC561 ", fmtW(result.required)), React.createElement("div", {
     className: "tb-gauge relative mb-6"
   }, React.createElement("div", {
     className: "h-5 bg-gray-100 rounded-full overflow-visible"
@@ -163,12 +163,12 @@ function RatioCard({
   })), React.createElement("div", {
     className: "absolute top-0 bottom-0 flex flex-col items-center",
     style: {
-      left: `${mark140}%`,
+      left: `${markMin}%`,
       transform: 'translateX(-50%)'
     }
   }, React.createElement("div", {
     className: "absolute -top-5 text-xs font-bold text-red-500 whitespace-nowrap"
-  }, "140%"), React.createElement("div", {
+  }, MIN_RATIO, "%"), React.createElement("div", {
     className: "w-0.5 h-5 bg-red-500 mt-0"
   })), React.createElement("div", {
     className: "absolute top-0 bottom-0 flex flex-col items-center",
@@ -221,7 +221,7 @@ function RatioCard({
     className: `rounded-xl p-2.5 text-center ${danger ? 'bg-red-50' : 'bg-emerald-50'}`
   }, React.createElement("div", {
     className: "text-xs text-gray-400 mb-1"
-  }, "140% \uC5EC\uC720\uAE08\uC561"), React.createElement("div", {
+  }, MIN_RATIO, "% \uC5EC\uC720\uAE08\uC561"), React.createElement("div", {
     className: `text-sm font-bold ${danger ? 'text-red-600' : 'text-emerald-600'}`
   }, danger ? `-${fmtW(shortage)}` : fmtW(surplus)))));
 }
@@ -1098,7 +1098,7 @@ function App({
     className: "text-xl font-extrabold tracking-tight"
   }, "\uB2F4\uBCF4\uBE44\uC728 \uACC4\uC0B0\uAE30"), React.createElement("p", {
     className: "text-slate-400 text-xs mt-0.5"
-  }, "\uC0BC\uC131\uC99D\uAD8C \uC2E0\uC6A9\uC735\uC790 \xB7 \uCD5C\uC800\uC720\uC9C0 140%")), React.createElement("div", {
+  }, "\uC0BC\uC131\uC99D\uAD8C \uC2E0\uC6A9\uC735\uC790 \xB7 \uCD5C\uC800\uC720\uC9C0 ", MIN_RATIO, "%")), React.createElement("div", {
     className: "text-right"
   }, React.createElement("div", {
     className: `text-3xl font-extrabold tabular-nums ${ratioClass}`
