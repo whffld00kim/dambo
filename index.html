@@ -5,6 +5,16 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>담보비율 계산기</title>
 
+  <!-- 옛 주소(github.io)로 들어오면 새 주소로 넘기기만 한다 (2026-11-11 — 전엔 맨 위에 이동 띠만 달고 앱 전체가 그대로 돌았다).
+       앱을 띄우지 않고, 그 주소에 남아 있던 이 앱의 기기 사본도 지운다 -->
+  <script>
+    if (/(^|\.)github\.io$/.test(location.hostname)) {
+      window.__damboMoved = true;
+      try { localStorage.removeItem('dambo_v1'); localStorage.removeItem('dambo_cache_v1'); } catch (e) {}
+      location.replace('https://minsung-dambo.web.app/');
+    }
+  </script>
+
   <!-- PWA -->
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#1e293b">
@@ -13,10 +23,10 @@
   <meta name="apple-mobile-web-app-title" content="담보비율">
   <link rel="apple-touch-icon" href="icons/app-any-192.png">
 
-  <!-- 버전을 정확히 고정한다 (2026-09-03). @18처럼 두면 CDN이 다른 18.x를 줄 때 동작이 바뀔 수 있다. sw.js의 CDN_ASSETS와 한 글자도 다르면 안 된다 -->
-  <script src="https://unpkg.com/react@18.3.1/umd/react.production.min.js" crossorigin></script>
-  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js" crossorigin></script>
-  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- React 18.3.1 은 이 앱과 함께 배포한다 (2026-11-11 — 전엔 열 때마다 바깥 저장소에서 받았다. 바깥 파일이 바뀌어도 이 앱은 영향이 없다).
+       파일은 공식 배포본 그대로다(vendor/). 버전을 올릴 땐 파일을 바꾸고 sw.js 의 CACHE 를 올린다 -->
+  <script src="./vendor/react.production.min.js"></script>
+  <script src="./vendor/react-dom.production.min.js"></script>
 
   <!-- 클라우드 저장 (finance-manager-ca4ca RTDB의 /dambo) -->
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
@@ -59,8 +69,9 @@ html, body { overscroll-behavior-y: none; }
        - 폭 제한(max-w-2xl)을 풀고 탭마다 두 단: 왼쪽 입력 / 오른쪽 결과
        - 화면 높이를 채운다 (카드가 남는 높이를 나눠 갖는다, min-height라 길면 스크롤)
        tb-* 클래스는 폰에서는 아무 규칙이 없는 표식이다.
-       Tailwind CDN이 이 style 뒤에 규칙을 붙이므로 #root를 앞에 달아 우선순위로 이긴다 */
-    @media (min-width: 900px) and (orientation: landscape) {
+       이 style 뒤에 app.css(테일윈드 규칙)가 오므로 #root를 앞에 달아 우선순위로 이긴다.
+       높이 500px 미만(폰을 가로로 돌린 화면)은 뺀다 — 넓다고 태블릿 배치를 쓰면 표가 눌린다 (2026-11-11, screen-layout 규칙) */
+    @media (min-width: 900px) and (orientation: landscape) and (min-height: 500px) {
       #root .tb-app {
         max-width: 1320px;
         padding: 20px 28px 24px;
@@ -90,21 +101,27 @@ html, body { overscroll-behavior-y: none; }
       /* ── 담보비율 카드 (포트폴리오·시나리오 오른쪽) ── */
       #root .tb-ratio {
         display: flex; flex-direction: column;
-        margin-bottom: 0; padding: 28px 28px 24px;
+        margin-bottom: 0; padding: 24px 28px 20px;
       }
       #root .tb-ratio .text-gray-500.font-semibold { font-size: 18px; }
       #root .tb-ratio-num { font-size: 56px; line-height: 1.1; }
-      #root .tb-ratio-req { font-size: 13px; margin-top: 4px; }
-      #root .tb-gauge { margin: auto 0; padding: 28px 0 8px; }
+      #root .tb-ratio-req { font-size: 13px; margin-top: 4px; margin-bottom: 0; }
+      /* 눈금 글자(24px)와 눈금 선(28px)이 게이지 상자 안(위쪽 안여백 52px)에 들어간다 —
+         전엔 글자가 상자 밖 위로 나가 있어서, 카드가 눌리면 「최저유지…」 줄과 겹쳤다 (2026-11-11) */
+      #root .tb-gauge { margin: auto 0; padding: 52px 0 8px; }
+      #root .tb-gauge > .tb-gauge-mark { top: 24px; }
       #root .tb-gauge > .h-5 { height: 28px; }
       #root .tb-gauge .w-0\.5 { height: 28px; width: 3px; }
       #root .tb-gauge .-top-5 { font-size: 14px; top: -24px; }
       #root .tb-ratio-grid3, #root .tb-ratio-grid2 { gap: 12px; }
       #root .tb-ratio-grid3 { margin-bottom: 12px; }
-      #root .tb-ratio-grid3 > div, #root .tb-ratio-grid2 > div { padding: 18px 10px; }
+      /* 카드 안 칸의 안여백은 「닿는 지점」 상자(2026-11-11)가 들어와도 탭 S7+ 가로(높이 804) 한 화면에 들어가는 크기 */
+      #root .tb-ratio-grid3 > div, #root .tb-ratio-grid2 > div { padding: 14px 10px; }
       #root .tb-ratio-grid3 .text-xs, #root .tb-ratio-grid2 .text-xs { font-size: 13px; margin-bottom: 6px; }
-      #root .tb-ratio-grid3 .font-bold { font-size: 16px; }
+      #root .tb-ratio-grid3 .font-bold { font-size: 16px; letter-spacing: 0; }
       #root .tb-ratio-grid2 .font-bold { font-size: 19px; }
+      #root .tb-ratio-ref { font-size: 14px; margin-top: 8px; }
+      #root .tb-be { font-size: 14px; margin-top: 10px; padding-top: 10px; }
 
       /* ── 포트폴리오: 왼쪽 종목표·기타 자산 / 오른쪽 담보비율 ── */
       #root .tb-panel-portfolio {
@@ -122,61 +139,74 @@ html, body { overscroll-behavior-y: none; }
       }
       #root .tb-table { box-shadow: none; font-size: 15px; table-layout: fixed; }
       #root .tb-table th { font-size: 13px; padding: 12px 14px; }
-      /* 칸 폭 고정 — 수정 줄에 입력칸이 들어와도 표가 출렁이지 않게 */
+      /* 칸 폭 고정 */
       #root .tb-table th:nth-child(1) { width: 26%; }
       #root .tb-table th:nth-child(2) { width: 11%; }
       #root .tb-table th:nth-child(3) { width: 14.5%; }
       #root .tb-table th:nth-child(4) { width: 18%; }
-      #root .tb-table th:nth-child(5) { width: 12%; }
-      #root .tb-table th:nth-child(6) { width: 18.5%; }
-      #root .tb-table td { padding: 14px 14px; white-space: nowrap; }
+      #root .tb-table th:nth-child(5) { width: 11%; }
+      #root .tb-table th:nth-child(6) { width: 19.5%; }
+      #root .tb-table td { padding: 12px 14px; white-space: nowrap; }
       #root .tb-table td:first-child { white-space: normal; }
-      #root .tb-table tr.bg-yellow-50 td { padding: 10px 6px; }
-      #root .tb-table tr.bg-yellow-50 input, #root .tb-table tr.bg-yellow-50 select { padding: 8px 8px; font-size: 15px; }
-      #root .tb-table td .text-xs, #root .tb-table td button { font-size: 13px; }
-      #root .tb-table td button { padding: 4px 6px; }
-      #root .tb-add { align-self: flex-start; font-size: 15px; padding: 10px 22px; margin-bottom: 14px; }
+      #root .tb-table td:last-child { padding: 8px 6px; }
+      #root .tb-table td .text-xs { font-size: 13px; }
+      #root .tb-table td .tb-rowbtn { font-size: 13px; padding: 8px 11px; }
+      /* 수정 카드가 들어가는 줄 */
+      #root .tb-table tr.tb-editrow td { padding: 10px; white-space: normal; }
+      #root .tb-editcard { padding: 16px; }
+      #root .tb-editcard button { font-size: 14px; padding-top: 10px; padding-bottom: 10px; }
+      #root .tb-addrow { margin-bottom: 14px; }
+      #root .tb-add { font-size: 15px; padding: 10px 22px; }
       #root .tb-etc { padding: 20px 22px; }
+      #root .tb-etc-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 
-      /* ── 추가매수: 입력 | 목록 (두 단, 각각 화면 높이). 「전후 비교」 세 번째 단은 2026-10-09 삭제 ── */
+      /* ── 추가매수: 왼쪽 입력(매수 추가 + 입금·상환) | 오른쪽 목록 (두 단, 각각 화면 높이) ── */
       #root .tb-buy {
         display: grid;
         grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
         gap: 20px;
         min-height: 0;
       }
+      #root .tb-buy-left { grid-column: 1; grid-row: 1; display: flex; flex-direction: column; gap: 14px; min-height: 0; overflow-y: auto; padding-bottom: 2px; }
       /* 목록이 없으면 입력 칸 하나만 가운데 */
       #root .tb-buy:not(:has(.tb-buylist)) { grid-template-columns: minmax(0, 1fr); }
-      #root .tb-buy:not(:has(.tb-buylist)) > .tb-buyform { max-width: 640px; width: 100%; margin-left: auto; margin-right: auto; }
-      #root .tb-buyform { grid-column: 1; grid-row: 1; margin-bottom: 0; padding: 24px 24px; }
-      #root .tb-buyform > .grid { row-gap: 18px; }
-      #root .tb-buyform input[type=text], #root .tb-buyform select { padding-top: 12px; padding-bottom: 12px; }
-      #root .tb-buyform button { font-size: 16px; padding-top: 13px; padding-bottom: 13px; }
-      #root .tb-buyform .bg-slate-50 { font-size: 15px; padding: 14px 16px; }
+      #root .tb-buy:not(:has(.tb-buylist)) > .tb-buy-left { max-width: 640px; width: 100%; margin-left: auto; margin-right: auto; }
+      #root .tb-buyform, #root .tb-sim { margin-bottom: 0; padding: 20px 24px; flex: none; }
+      #root .tb-buyform > .grid { row-gap: 14px; }
+      #root .tb-buyform input[type=text], #root .tb-buyform select { padding-top: 11px; padding-bottom: 11px; }
+      #root .tb-buyform button { font-size: 16px; padding-top: 12px; padding-bottom: 12px; }
+      #root .tb-buyform .bg-slate-50, #root .tb-sim .bg-slate-50 { font-size: 15px; padding: 14px 16px; }
+      #root .tb-sim .text-xs { font-size: 13px; }
+      #root .tb-sim button { font-size: 14px; padding-top: 10px; padding-bottom: 10px; }
       #root .tb-buylist { grid-column: 2; grid-row: 1; margin-bottom: 0; padding: 22px; display: flex; flex-direction: column; min-height: 0; }
       #root .tb-buyitems { flex: 1 1 auto; min-height: 0; overflow-y: auto; }
-      #root .tb-buyitems > div { font-size: 15px; padding: 10px 14px; gap: 8px; }
-      #root .tb-buyitems > div > div:first-child { min-width: 0; }
-      #root .tb-buyitems > div > div:first-child .font-medium { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-      #root .tb-buyitems > div > div:first-child > span:last-child { flex-shrink: 0; white-space: nowrap; }
-      #root .tb-buyitems > div > div:last-child { flex-shrink: 0; }
-      #root .tb-buyitems .text-right > div { white-space: nowrap; }
+      #root .tb-buyitems > div { font-size: 15px; padding: 10px 14px; }
       #root .tb-buyitems .text-xs { font-size: 13px; }
       #root .tb-buylist > .border-t { font-size: 15px; }
 
-      /* ── 가격 시나리오: 왼쪽 종목 카드 두 단 / 오른쪽 담보비율 ── */
+      /* ── 가격 시나리오: 왼쪽 종목 카드 두 단 / 오른쪽 담보비율 ──
+         오른쪽 열(.tb-scn-side)에 카드 셋(비율·기준 대비·총잔고)이 쌓이므로 비율 카드는 낮게 그린다.
+         비율 카드는 제 내용보다 작아지지 않고(flex: 1 0 auto), 높이가 모자라면 오른쪽 열 안에서 스크롤한다 —
+         전엔 카드가 눌려 눈금 글자가 「최저유지…」 줄과 겹치고 아래 칸이 카드 밖으로 나왔다 (2026-11-11) */
       #root .tb-scn {
         display: grid;
         grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
-        grid-template-rows: minmax(0, 1fr) auto auto;
+        grid-template-rows: minmax(0, 1fr);
         gap: 14px 20px;
         min-height: 0;
       }
-      #root .tb-scn > .tb-ratio { grid-column: 2; grid-row: 1; }
-      #root .tb-scn:not(:has(.tb-scn-diff)) > .tb-ratio { grid-row: 1 / span 2; }
-      #root .tb-scn-diff { grid-column: 2; grid-row: 2; margin-bottom: 0; font-size: 16px; padding: 14px 0; }
-      #root .tb-scn-bal { grid-column: 2; grid-row: 3; margin-bottom: 0; padding: 16px 20px; }
-      #root .tb-scn-list { grid-column: 1; grid-row: 1 / span 3; display: flex; flex-direction: column; padding: 20px 22px; min-height: 0; }
+      #root .tb-scn-side { grid-column: 2; grid-row: 1; display: flex; flex-direction: column; gap: 14px; min-height: 0; overflow-y: auto; }
+      #root .tb-scn-side > .tb-ratio { flex: 1 0 auto; padding: 18px 24px 16px; }
+      #root .tb-scn-side > .tb-ratio .tb-ratio-num { font-size: 46px; }
+      #root .tb-scn-side > .tb-ratio .tb-gauge { padding: 46px 0 4px; }
+      #root .tb-scn-side > .tb-ratio .tb-gauge .w-0\.5 { height: 22px; }
+      #root .tb-scn-side > .tb-ratio .tb-ratio-grid3 { margin-bottom: 8px; }
+      #root .tb-scn-side > .tb-ratio .tb-ratio-grid3 > div, #root .tb-scn-side > .tb-ratio .tb-ratio-grid2 > div { padding: 9px 8px; }
+      #root .tb-scn-side > .tb-ratio .tb-ratio-grid3 .text-xs, #root .tb-scn-side > .tb-ratio .tb-ratio-grid2 .text-xs { margin-bottom: 3px; }
+      #root .tb-scn-side > .tb-ratio .tb-ratio-ref { margin-top: 8px; font-size: 13px; }
+      #root .tb-scn-diff { flex: none; margin-bottom: 0; font-size: 16px; padding: 12px 0; }
+      #root .tb-scn-bal { flex: none; margin-bottom: 0; padding: 14px 20px; }
+      #root .tb-scn-list { grid-column: 1; grid-row: 1; display: flex; flex-direction: column; padding: 20px 22px; min-height: 0; }
       #root .tb-scn-list > div:first-child { margin-bottom: 14px; }
       #root .tb-scn-items {
         flex: 1 1 auto;
@@ -197,7 +227,7 @@ html, body { overscroll-behavior-y: none; }
       #root .tb-scn-item .text-xs { font-size: 13px; }
       #root .tb-scn-item input[type=number] { width: 72px; }
 
-      /* ── 동기화 창: 조금 넓게 ── */
+      /* ── 창(백업·체결): 조금 넓게 ── */
       #root .tb-modal { max-width: 520px; padding: 26px; }
       #root .tb-modal .text-xs { font-size: 13px; }
     }
@@ -211,9 +241,14 @@ html, body { overscroll-behavior-y: none; }
         height: 100dvh;
       }
     }
+    /* 아주 좁은 화면(380px 미만)에서는 비율 카드의 금액 세 칸 글자를 한 단계 줄인다 */
+    @media (max-width: 379px) { #root .tb-money3 { font-size: 11px; } }
   </style>
+  <!-- 화면 꾸밈 규칙(테일윈드)은 미리 만들어 둔 파일을 쓴다 (2026-11-11 — 전엔 열 때마다 바깥 스크립트 407KB 가 브라우저에서 만들었다).
+       src/app.jsx·index.html 에서 쓰는 클래스만 들어 있다. 다시 만들기: npm run build -->
+  <link rel="stylesheet" href="./app.css?v=20261111b">
   <script>
-    if ('serviceWorker' in navigator) {
+    if (!window.__damboMoved && 'serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('sw.js').then(reg => {
           // 새 서비스워커가 감지되면 자동으로 페이지 새로고침
@@ -261,8 +296,8 @@ html, body { overscroll-behavior-y: none; }
   <!-- ══════════════════════════════════════════════════════════
        클라우드 동기화 부트스트랩 (React 밖의 평범한 스크립트)
 
-       포트폴리오는 이제 이 기기가 아니라 클라우드에 있다.
-       PC에서 Claude가 사진을 보고 넣어주면 폰 앱이 켤 때 받아간다.
+       포트폴리오는 이 기기가 아니라 클라우드에 있다.
+       PC에서 Claude가 사진을 보고 넣어주면 폰 앱이 받아간다.
 
        프로젝트는 재무현황 앱과 같은 finance-manager-ca4ca를 쓴다.
        계정 허용 목록(allowedUsers)과 보안 규칙을 그대로 물려받으려는 것이다.
@@ -278,22 +313,33 @@ html, body { overscroll-behavior-y: none; }
     messagingSenderId: "360457300029",
     appId: "1:360457300029:web:b7066af249ce6427a6a254"
   };
-  firebase.initializeApp(firebaseConfig);
-  const db   = firebase.database();
-  const auth = firebase.auth();
+  let db = null, auth = null;      // damboStart 에서 채운다(옛 주소에서는 채우지 않는다)
 
   const DAMBO_PATH = 'dambo';
   let currentRole = null;          // 'admin' | 'viewer' | null
+  let currentUid = null;
 
   // 기기 사본으로 먼저 열기 (2026-10-15 — 도겸 수면·재무현황과 같은 방식)
   //   전엔 로그인 확인 → 허용 계정 조회 → /dambo 읽기를 다 기다린 뒤에야 그렸다. 이제 지난번 클라우드 문서를
   //   dambo_cache_v1 에 두었다가 로그인했던 기기면 바로 그리고(role 'cached' — 저장 안 함), 클라우드 값이 오면 다시 띄운다.
   //   계정 하나분 — 로그아웃·다른 계정이면 지운다. ?nocache=1 은 사본 없이 열기(비교용)
+  //   2026-11-11: 이 기기의 사본은 이것 하나다. 클라우드에서 읽을 때와 **이 기기가 저장에 성공했을 때** 고쳐 쓴다
+  //   (전엔 열 때만 써서, 값을 고친 뒤 다시 열면 첫 화면이 고치기 전 값이었다). 옛 사본 dambo_v1 은 쓰지 않고 지운다
   const DAMBO_CACHE = 'dambo_cache_v1';
   let shownFromCache = false;
   function readDamboCache() {
     if (/[?&]nocache=1/.test(location.search)) return null;
     try { const c = JSON.parse(localStorage.getItem(DAMBO_CACHE) || 'null'); return c && c.uid && c.cloud && c.cloud.portfolio ? c : null; } catch { return null; }
+  }
+  function writeDamboCache(cloud) {
+    try {
+      if (currentUid && cloud && cloud.portfolio) localStorage.setItem(DAMBO_CACHE, JSON.stringify({ uid: currentUid, at: Date.now(), cloud }));
+      else localStorage.removeItem(DAMBO_CACHE);
+    } catch {}
+  }
+  // 로그인이 풀리는 모든 길에서 이 기기의 보유 내역 사본을 지운다 (2026-11-11 — 전엔 버튼이 아닌 길로 풀리면 dambo_v1 이 남았다)
+  function clearDamboCopies() {
+    try { localStorage.removeItem(DAMBO_CACHE); localStorage.removeItem('dambo_v1'); } catch {}
   }
 
   function lockMessage(msg, isError) {
@@ -322,66 +368,108 @@ html, body { overscroll-behavior-y: none; }
 
   function damboSignOut() {
     if (!confirm('로그아웃 하시겠습니까?')) return;
-    // 로그아웃하면 이 기기의 보유·융자·현금 캐시를 지운다 (S12, 2026-09-03).
-    // 추가매수(extraBuys)는 이 기기 사본을 남긴다 (2026-10-09부터 클라우드에도 올라가지만, 오프라인 대비).
-    try {
-      const prev = JSON.parse(localStorage.getItem('dambo_v1') || 'null');
-      const keep = prev && prev.extraBuys ? { extraBuys: prev.extraBuys } : null;
-      localStorage.removeItem('dambo_v1');
-      localStorage.removeItem(DAMBO_CACHE);
-      if (keep) localStorage.setItem('dambo_v1', JSON.stringify(keep));
-    } catch {}
+    clearDamboCopies();
     auth.signOut().finally(() => location.reload());
   }
 
   /**
-   * 앱 → 클라우드 저장. 관리자만 쓴다.
-   * 추가매수(extraBuys)도 같이 올린다 (2026-10-09 사용자: 폰에서 넣은 6건이 태블릿에 안 보인다).
-   * 그전엔 "시뮬레이션이라 기기 전용"으로 두었는데, 사용자는 기기 간에 같이 보길 원한다.
-   * 문서 통째로 덮어쓰는 방식은 그대로지만, 2026-10-12부터 **옛 값으로는 덮지 않는다**:
+   * 앱 → 클라우드 저장. 관리자만 쓴다. 문서 통째로 쓰되 **옛 값으로는 덮지 않는다** (2026-10-12):
    * 이 기기가 마지막으로 본 updatedAt과 클라우드의 것이 다르면(PC에서 Claude가 넣었거나 다른 기기가 저장)
-   * 저장을 멈추고 'stale'을 돌려준다 → 앱이 최신 값을 다시 불러온다.
+   * 쓰지 않고 'stale'을 돌려준다 → 앱이 알린 뒤 최신 값을 받아 넣는다.
    * 트랜잭션이라 오프라인에서 고친 것도 다시 연결될 때 서버 값과 비교한 뒤에만 들어간다.
+   *
+   * 2026-11-11: **저장은 한 줄로 선다.** 앞 저장이 끝나(knownUpdatedAt 이 올라간) 뒤에 다음 것을 보낸다.
+   *   전엔 앞 저장이 가는 도중에 또 보내면, 라이브러리가 둘째에게 "지금 값"으로 첫째의 결과물을 주는데
+   *   knownUpdatedAt 은 아직 옛 값이라 "다른 곳에서 바뀌었다"로 잘못 읽었다(느린 망·끊긴 동안 거짓 알림 + 입력 유실).
+   *   기다리는 동안 더 새 저장이 들어오면 사이 것은 건너뛴다 — 마지막 상태만 보내면 된다.
+   * 돌려주는 값: { r: 'ok', at } | { r: 'stale' } | { r: 'error' } | { r: 'skipped' } | { r: 'viewer' }
    */
   let knownUpdatedAt = null;       // 이 기기가 마지막으로 읽거나 쓴 클라우드 문서의 updatedAt
-  window.damboSave = function (portfolio) {
-    if (currentRole !== 'admin') return Promise.resolve('viewer');
+  const ownWrites = new Set();     // 내가 보내는 중인 updatedAt — 아래 구독이 그 값을 "남이 바꿨다"로 읽지 않게
+  let saveTail = Promise.resolve();
+  let saveWanted = 0;
+  function saveOnce(portfolio) {
     const expected = knownUpdatedAt;
-    const next = { portfolio: portfolio, updatedAt: Date.now(), source: 'app' };
+    // 기기 시계가 늦어도 앞 값보다는 크게 — 값이 같으면 다른 기기가 "안 바뀌었다"로 읽는다
+    const next = { portfolio: portfolio, updatedAt: Math.max(Date.now(), (typeof expected === 'number' ? expected : 0) + 1), source: 'app' };
+    ownWrites.add(next.updatedAt);
     return db.ref(DAMBO_PATH).transaction(cur => {
       if (cur && (cur.updatedAt ?? null) !== expected) return;   // 그사이 다른 곳에서 바뀜 → 쓰지 않는다
       return next;
     }, null, false).then(r => {
-      if (!r.committed) return 'stale';
+      if (!r.committed) { ownWrites.delete(next.updatedAt); return { r: 'stale' }; }
       knownUpdatedAt = next.updatedAt;
-      return 'ok';
-    }).catch(e => { console.warn('클라우드 저장 실패:', e.message); return 'error'; });
+      ownWrites.delete(next.updatedAt);
+      writeDamboCache(next);
+      return { r: 'ok', at: next.updatedAt };
+    }).catch(e => { ownWrites.delete(next.updatedAt); console.warn('클라우드 저장 실패:', e && e.message); return { r: 'error' }; });
+  }
+  window.damboSave = function (portfolio) {
+    if (currentRole !== 'admin') return Promise.resolve({ r: 'viewer' });
+    const my = ++saveWanted;
+    const run = () => (my === saveWanted ? saveOnce(portfolio) : { r: 'skipped' });
+    const p = saveTail.then(run, run);
+    saveTail = p.catch(() => {});
+    return p;
   };
 
-  // 앱으로 다시 돌아왔을 때 클라우드가 바뀌어 있으면 새로 연다 (며칠 열어 둔 화면의 옛 값으로 고치지 않게)
+  /**
+   * 클라우드 값을 다시 읽어 열려 있는 화면에 넣는다 (2026-11-11 — 전엔 화면을 통째로 새로고침했고, 켜 둔 화면은 돌아올 때만 바뀌었다).
+   * 부르는 곳: 아래 updatedAt 구독(다른 곳에서 바뀜) · 앱으로 돌아왔을 때 · 저장이 'stale' 로 끝났을 때
+   */
+  window.damboRefresh = function () {
+    return db.ref(DAMBO_PATH).get().then(s => {
+      const cloud = s.val();
+      knownUpdatedAt = cloud ? (cloud.updatedAt ?? null) : null;
+      writeDamboCache(cloud);
+      const doc = { portfolio: cloud && cloud.portfolio ? cloud.portfolio : null,
+        updatedAt: cloud ? (cloud.updatedAt ?? null) : null, source: cloud ? (cloud.source ?? null) : null };
+      if (window.__damboApp) window.__damboApp.apply(doc); else location.reload();
+      return true;
+    });
+  };
+  // 다른 곳에서 바뀐 것을 알았을 때. 이 화면에서 고치는 중이면(안 보낸 수정·수정 카드·입력 중) 기다렸다가 다시 본다 —
+  // 그사이 이 화면이 저장을 보내면 그쪽이 '바뀌어 있었다'(stale)로 끝나며 알리고 받아 넣는다
+  let remoteSeen = null, remoteTimer = null;
+  function onRemoteValue(v) {
+    if (!currentRole) return;
+    if (v === knownUpdatedAt || ownWrites.has(v)) { remoteSeen = null; return; }
+    remoteSeen = v;
+    tryRefresh();
+  }
+  function tryRefresh() {
+    clearTimeout(remoteTimer);
+    if (remoteSeen === null || remoteSeen === knownUpdatedAt) { remoteSeen = null; return; }
+    const app = window.__damboApp;
+    if (app && app.busy()) { remoteTimer = setTimeout(tryRefresh, 3000); return; }
+    remoteSeen = null;
+    window.damboRefresh().catch(() => {});
+  }
+
+  // 앱으로 다시 돌아왔을 때 한 번 더 본다 (며칠 열어 둔 화면의 옛 값으로 고치지 않게 — 구독이 다시 붙기 전에도)
   document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState !== 'visible' || !currentRole) return;
-    db.ref(DAMBO_PATH + '/updatedAt').get().then(s => {
-      if ((s.val() ?? null) !== knownUpdatedAt) location.reload();
-    }).catch(() => {});
+    if (document.visibilityState !== 'visible' || !currentRole || !db) return;
+    db.ref(DAMBO_PATH + '/updatedAt').get().then(s => onRemoteValue(s.val() ?? null)).catch(() => {});
   });
 
-  // 바벨이 JSX를 컴파일하는 데 시간이 걸린다. 인증이 먼저 끝나는 경우가 있어서
+  // app.js 가 인증보다 늦게 준비되는 경우가 있어서
   // 준비되면 부르고, 아직이면 대기시켜 둔다. (둘 중 어느 쪽이 먼저여도 동작한다)
   window.__damboBoot = function (payload) {
     if (window.startDamboApp) window.startDamboApp(payload);
     else window.__damboPending = payload;
   };
 
-  auth.onAuthStateChanged(async user => {
+  let watching = false;
+  async function onAuth(user) {
     const lock = document.getElementById('appLockScreen');
     const btn  = document.getElementById('lockGoogleBtn');
 
     if (!user) {
-      currentRole = null;
+      currentRole = null; currentUid = null;
       if (btn) btn.disabled = false;
       try { localStorage.removeItem('signed_in_before'); } catch {}
-      if (shownFromCache) { try { localStorage.removeItem(DAMBO_CACHE); } catch {} location.reload(); return; }   // 사본으로 그린 화면을 남기지 않는다
+      clearDamboCopies();
+      if (shownFromCache) { location.reload(); return; }   // 사본으로 그린 화면을 남기지 않는다
       if (lock && lock.classList.contains('resuming')) {
         lock.classList.remove('resuming');
         const sub = document.getElementById('lockSub');
@@ -400,25 +488,25 @@ html, body { overscroll-behavior-y: none; }
     if (role !== 'admin' && role !== 'viewer') {
       lockMessage('접근이 허용되지 않은 계정입니다: ' + (user.email || user.uid), true);
       if (btn) btn.disabled = false;
-      try { localStorage.removeItem(DAMBO_CACHE); } catch {}
+      clearDamboCopies();
       await auth.signOut();
       return;
     }
     currentRole = role;
-    try { localStorage.setItem('signed_in_before', '1'); } catch {}
+    currentUid = user.uid;
+    try { localStorage.setItem('signed_in_before', '1'); localStorage.removeItem('dambo_v1'); } catch {}
 
-    // 클라우드를 한 번 읽는다(실시간 구독이 아니다). 못 읽으면 이 기기에 남은 값으로 연다.
+    // 클라우드를 읽는다. 못 읽으면 이 기기에 남은 지난번 값(같은 계정의 사본)으로 연다.
     let cloud = null, cloudError = null;
     try {
       cloud = (await db.ref(DAMBO_PATH).get()).val();
-      knownUpdatedAt = cloud ? (cloud.updatedAt ?? null) : null;
-      try {
-        if (cloud && cloud.portfolio) localStorage.setItem(DAMBO_CACHE, JSON.stringify({ uid: user.uid, at: Date.now(), cloud }));
-        else localStorage.removeItem(DAMBO_CACHE);
-      } catch {}
+      writeDamboCache(cloud);
     } catch (e) {
       cloudError = e.message;
+      const c = readDamboCache();
+      cloud = c && c.uid === user.uid ? c.cloud : null;
     }
+    knownUpdatedAt = cloud ? (cloud.updatedAt ?? null) : null;
 
     if (lock) lock.style.display = 'none';
     document.body.style.overflow = '';
@@ -430,10 +518,26 @@ html, body { overscroll-behavior-y: none; }
       email: user.email || '',
       error: cloudError,
     });
-  });
 
-  // 로그인했던 기기 + 사본이 있으면 로그인 확인을 기다리지 않고 바로 그린다. 위 onAuthStateChanged 가 끝나면 진짜 값으로 다시 띄운다
-  (function () {
+    // 다른 곳(PC·다른 기기)에서 바뀌면 알아챈다 — 문서 전체가 아니라 updatedAt 한 값만 구독한다
+    if (!watching) {
+      watching = true;
+      db.ref(DAMBO_PATH + '/updatedAt').on('value', s => onRemoteValue(s.val() ?? null), () => { watching = false; });
+    }
+  }
+
+  function damboStart() {
+    firebase.initializeApp(firebaseConfig);
+    db   = firebase.database();
+    auth = firebase.auth();
+    // 연결 상태 → 화면(상태 줄의 「오프라인」)
+    db.ref('.info/connected').on('value', s => {
+      window.__damboOnline = s.val() === true;
+      if (window.__damboNet) window.__damboNet(window.__damboOnline);
+    });
+    auth.onAuthStateChanged(onAuth);
+
+    // 로그인했던 기기 + 사본이 있으면 로그인 확인을 기다리지 않고 바로 그린다. 위 onAuth 가 끝나면 진짜 값으로 다시 띄운다
     try {
       if (!localStorage.getItem('signed_in_before')) return;
       const c = readDamboCache();
@@ -445,20 +549,10 @@ html, body { overscroll-behavior-y: none; }
       window.__damboBoot({ portfolio: c.cloud.portfolio, updatedAt: c.cloud.updatedAt ?? null, source: c.cloud.source ?? null,
         role: 'cached', email: '', error: null, cached: true });
     } catch (e) { console.warn('사본 열기 실패 — 클라우드를 기다린다:', e.message); }
-  })();
+  }
+  if (!window.__damboMoved) damboStart();
   </script>
 
-  <script src="./app.js?v=20261110a"></script>
-  <script>
-  // 주소 이전 (2026-10-15): github.io 공용 주소 → 전용 주소. 옛 주소에선 맨 위에 이동 띠(로그인 화면 위에도).
-  // 옮길 기기 설정은 없다 — 보유·추가매수는 클라우드에 있고, 새 주소에선 구글 로그인만 한 번 다시
-  (function () {
-    if (!/(^|\.)github\.io$/.test(location.hostname)) return;
-    const bar = document.createElement('div');
-    bar.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:100000;background:#f59e0b;color:#111;padding:10px 12px;text-align:center;font-size:14px;line-height:1.5;font-weight:600';
-    bar.innerHTML = '담보비율이 새 주소로 옮겼습니다 <a href="https://minsung-dambo.web.app/" style="margin-left:8px;padding:4px 12px;border-radius:6px;background:#111;color:#fff;text-decoration:none">새 주소로 이동</a>';
-    document.body.appendChild(bar);
-  })();
-  </script>
+  <script src="./app.js?v=20261111b"></script>
 </body>
 </html>

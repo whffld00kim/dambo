@@ -1,0 +1,4 @@
+/* app.css 의 원본 — npm run build 가 src/app.jsx·index.html 에서 쓰는 클래스만 골라 ../app.css 를 만든다 */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;

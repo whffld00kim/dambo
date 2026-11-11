@@ -1,11 +1,12 @@
 {
   "name": "dambo",
   "private": true,
-  "description": "담보비율 계산기 — src/app.jsx 를 app.js 로 미리 변환한다 (npm run build)",
+  "description": "담보비율 계산기 — src/app.jsx 를 app.js 로, 쓰는 꾸밈 규칙을 app.css 로 미리 만든다 (npm run build)",
   "scripts": {
     "build": "node build.js"
   },
   "devDependencies": {
-    "@babel/standalone": "7.24.7"
+    "@babel/standalone": "7.24.7",
+    "tailwindcss": "3.4.17"
   }
 }

@@ -1,23 +1,23 @@
 // Dambo — 저장된 사본으로 먼저 열고, 뒤에서 새 파일을 받아 캐시를 바꿔 둔다 (2026-09-29, 투자 트래커와 같은 방식).
 // 그전엔 네트워크 우선이라 열 때마다 앱 파일·라이브러리 응답을 기다렸다.
-// ⚠ index.html을 고치면 CACHE 버전을 올린다. 새 버전이 설치되면 페이지가 스스로 새로고침해 바로 새 화면이 뜬다.
+// ⚠ index.html·app.js·app.css 를 고치면 CACHE 버전을 올린다. 새 버전이 설치되면 페이지가 스스로 새로고침해 바로 새 화면이 뜬다.
 // ⚠ index.html이 부르는 파일을 바꾸면 OWN·CDN 목록도 같이 고친다 (한 글자라도 다르면 미리 받아 둔 의미가 없다).
-const CACHE = 'dambo-v20';   // v20: 최저유지비율 140 → 130 (2026-11-10)
+const CACHE = 'dambo-v22';   // v21·v22: 2026-11-11 점검 수정 — 저장 한 줄 세우기·추가매수 연결·입력·화면 + React·꾸밈 규칙을 앱과 함께 배포
 
-// 이 앱의 파일
+// 이 앱의 파일 (React 와 꾸밈 규칙 app.css 도 2026-11-11부터 여기 — 바깥에서 받지 않는다)
 const OWN = [
   "./",
   "./index.html",
   "./manifest.json",
   "./icons/app-any-192.png",
-  "./app.js?v=20261110a"
+  "./vendor/react.production.min.js",
+  "./vendor/react-dom.production.min.js",
+  "./app.css?v=20261111b",
+  "./app.js?v=20261111b"
 ];
 
-// 외부 라이브러리 (버전이 주소에 박혀 있어 내용이 안 바뀐다)
+// 외부 라이브러리 (버전이 주소에 박혀 있어 내용이 안 바뀐다) — Firebase 만 남았다
 const CDN = [
-  "https://cdn.tailwindcss.com",
-  "https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js",
-  "https://unpkg.com/react@18.3.1/umd/react.production.min.js",
   "https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js",
   "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js",
   "https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"
@@ -26,11 +26,11 @@ const CDN = [
 // 캐시해도 되는 곳. 여기 없는 호스트는 손대지 않는다.
 // ⚠ 이 목록을 넓히지 말 것 — 로그인(identitytoolkit)·DB(firebaseio)·Storage 응답까지 캐시되면
 //    지난 응답이 되살아나 로그인이 이상하게 풀리거나 옛 데이터가 보인다.
-const CDN_HOSTS = ["cdn.tailwindcss.com", "unpkg.com", "www.gstatic.com"];
+const CDN_HOSTS = ["www.gstatic.com"];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(cache => Promise.all([
-    // 브라우저 HTTP 캐시(GitHub Pages max-age=600)를 거치지 않고 새로 받는다
+    // 브라우저 HTTP 캐시를 거치지 않고 새로 받는다
     ...OWN.map(u => cache.add(new Request(u, { cache: 'reload' }))),
     ...CDN.map(u => cache.add(u)
       .catch(() => fetch(u, { mode: 'no-cors' }).then(r => cache.put(u, r)))
@@ -42,8 +42,7 @@ self.addEventListener('install', e => {
 self.addEventListener('activate', e => {
   e.waitUntil(
     caches.keys()
-      // 이 앱의 옛 캐시만 지운다. 웹앱들이 같은 주소(github.io)를 나눠 써서 캐시 저장소도 하나다 —
-      // 접두사를 안 가리면 다른 앱의 캐시까지 지운다
+      // 이 앱의 옛 캐시만 지운다. 접두사를 안 가리면 같은 주소를 나눠 쓰는 다른 앱의 캐시까지 지운다
       .then(keys => Promise.all(keys.filter(k => k.startsWith('dambo-') && k !== CACHE).map(k => caches.delete(k))))
       .then(() => self.clients.claim())
   );
